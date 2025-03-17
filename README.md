@@ -1,13 +1,13 @@
-# Hu?ng d?n s? d?ng
-D? �n backend n�y ch?a c�c thu m?c v� t?p sau:
-- **src/config**: C?u h�nh m�i tru?ng, database, JWT
-- **src/controllers**: X? l� logic cho c�c route
-- **src/models**: �?nh nghia schema c?a database
-- **src/routes**: �?nh nghia API endpoints
-- **src/middleware**: X? l� b?o m?t, x�c th?c
-- **src/services**: X? l� nghi?p v? ch�nh (g?i email, thanh to�n...)
-- **src/utils**: C�c h�m ti?n �ch (m� h�a m?t kh?u, JWT...)
-- **src/app.js**: Kh?i t?o server Express
-- **src/server.js**: �i?m v�o ch�nh
-- **.env**: Bi?n m�i tru?ng
-- **package.json**: Qu?n l� dependencies
+# Hướng dẫn sử dụng
+Dự án backend, phần của Phong Lê chứa các mục sau:
+- **src/config**: Cấu hình môi trường, database, JWT
+- **src/controllers**: Xử lý logic cho các route
+- **src/models**: Ðịnh nghia schema của database
+- **src/routes**: Ðịnh nghia API endpoints
+- **src/middleware**: Xử lý bảo mật, xác thực
+- **src/services**: Xử lý nghiệp vụ chính (gửi email, thanh toán...)
+- **src/utils**: Các hàm tiện ích (mã hóa mật khẩu, JWT...)
+- **src/app.js**: Khởi tạo server Express
+- **src/server.js**: Ðiểm vào chính
+- **.env**: Biến môi tru?ng
+- **package.json**: Quản lý dependencies
