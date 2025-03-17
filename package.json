@@ -1,0 +1,17 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "D? �n backend n�y ch?a c�c thu m?c v� t?p sau: - **src/config**: C?u h�nh m�i tru?ng, database, JWT - **src/controllers**: X? l� logic cho c�c route - **src/models**: �?nh nghia schema c?a database - **src/routes**: �?nh nghia API endpoints - **src/middleware**: X? l� b?o m?t, x�c th?c - **src/services**: X? l� nghi?p v? ch�nh (g?i email, thanh to�n...) - **src/utils**: C�c h�m ti?n �ch (m� h�a m?t kh?u, JWT...) - **src/app.js**: Kh?i t?o server Express - **src/server.js**: �i?m v�o ch�nh - **.env**: Bi?n m�i tru?ng - **package.json**: Qu?n l� dependencies",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mysql2": "^3.13.0",
+    "sequelize": "^6.37.6",
+    "sequelize-cli": "^6.6.2"
+  }
+}
