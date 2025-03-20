@@ -11,3 +11,5 @@ Dự án backend, phần của Phong Lê chứa các mục sau:
 - **src/server.js**: Ðiểm vào chính
 - **.env**: Biến môi trường
 - **package.json**: Quản lý dependencies
+# Ghi chú
+- **Tạo thêm thư mục (VD: UseCase) để dễ quản lí UML**
