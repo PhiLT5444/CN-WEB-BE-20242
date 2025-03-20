@@ -9,5 +9,5 @@ Dự án backend, phần của Phong Lê chứa các mục sau:
 - **src/utils**: Các hàm tiện ích (mã hóa mật khẩu, JWT...)
 - **src/app.js**: Khởi tạo server Express
 - **src/server.js**: Ðiểm vào chính
-- **.env**: Biến môi tru?ng
+- **.env**: Biến môi trường
 - **package.json**: Quản lý dependencies
