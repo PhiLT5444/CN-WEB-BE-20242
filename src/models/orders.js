@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Orders.belongsTo(models.Users, {foreignKey: 'userId'});
+      Orders.belongsTo(models.Users, {foreignKey: 'user_id'});
     }
   }
   Orders.init({
@@ -20,18 +20,39 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       allowNull: false,
     },
-    userId: {
+    user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    totalCost: {
+    total_amount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     },
-    status: {
-      type: DataTypes.ENUM('pending', 'completed', 'canceled'),
+    status:{
+      type: DataTypes.ENUM('pending', 'processing', 'completed', 'canceled'),
+      defaultValue: 'pending',
       allowNull: false,
-      defaultValue: 'pending'
+    },
+    shipping_address: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    payment_status: {
+      type: DataTypes.ENUM('pending','paid', 'failed'),
+      allowNull: false,
+      defaultValue: 'pending',
+    },
+    is_deleted: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     }
   }, {
     sequelize,

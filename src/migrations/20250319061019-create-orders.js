@@ -2,43 +2,58 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Orders', {
+    await queryInterface.createTable('orders', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      userId: {
+      user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: "users",
-          key: id,
+          key: 'id',
         },
         onUpdate: "CASCADE",
         onDelete: "CASCADE"
       },
-      totalCost: {
+      total_amount: {
         type: Sequelize.DECIMAL(10,2),
         allowNull: false,
       },
       status: {
-        type: Sequelize.ENUM('pending', 'completed', 'canceled'),
+        type: Sequelize.ENUM('pending', 'processing', 'completed', 'canceled'),
+        defaultValue: 'pending',
+        allowNull: false,
+      },
+      shipping_address: {
+        type: Sequelize.TEXT,
+        allowNull: false,
+      },
+      payment_status: {
+        type: Sequelize.ENUM('pending', 'paid', 'failed'),
         allowNull: false,
         defaultValue: 'pending',
       },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE
+      is_deleted: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
       },
-      updatedAt: {
+      created_at: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+      },
+      updated_at: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       }
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Orders');
+    await queryInterface.dropTable('orders');
   }
 };
