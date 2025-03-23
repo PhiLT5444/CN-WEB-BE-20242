@@ -1,11 +1,16 @@
-const express = require("express");
-const app = express();
+const express = require('express');
+const connectDB = require('./config/connectDB');
+const orderRoutes = require('./routes/OrdersRoutes')
 
-app.get("/", function (req, res) {
-    res.send("Hello World!");
-});
+require('dotenv').config();
+let app = express();
 
+orderRoutes(app)
 
-app.listen(5005, function () {
-    console.log("Started application on port %d", 5005);
-});
+connectDB();
+
+let port = process.env.PORT || 5005;
+
+app.listen(port, () =>{
+    console.log("The web is running on the port: " + port)
+})

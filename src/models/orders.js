@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Orders.belongsTo(models.Users, {foreignKey: 'user_id'});
+      //Orders.belongsTo(models.users, {foreignKey: 'user_id'});
     }
   }
   Orders.init({
@@ -56,8 +56,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     sequelize,
-    modelName: 'Orders',
+    modelName: 'orders',
     timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   });
   return Orders;
 };

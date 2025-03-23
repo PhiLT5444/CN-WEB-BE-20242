@@ -12,8 +12,8 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      OrderDetails.belongsTo(models.Orders, {foreignKey: 'order_id'});
-      OrderDetails.belongsTo(models.Products, {foreignKey: 'product_id'});
+      //OrderDetails.belongsTo(models.orders, {foreignKey: 'order_id'});
+      //OrderDetails.belongsTo(models.products, {foreignKey: 'product_id'});
     }
   }
   OrderDetails.init({
@@ -51,10 +51,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    }
   }, {
     sequelize,
-    modelName: 'OrderDetails',
+    modelName: 'orderdetails',
     timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   });
   return OrderDetails;
 };
