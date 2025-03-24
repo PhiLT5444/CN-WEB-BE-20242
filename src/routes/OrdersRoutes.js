@@ -4,7 +4,7 @@ const orderController = require('../controllers/OrderController')
 let router = express.Router();
 
 let orderRoutes = (app) =>{
-    router.get('/test', orderController.getOrderList)
+    router.get('/orderlist', orderController.getOrderList)
 
     return app.use("/", router);
 }
