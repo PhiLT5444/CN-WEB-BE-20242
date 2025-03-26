@@ -1,11 +1,22 @@
 const express = require("express");
+const dotenv = require("dotenv");
+const sequelize = require("./config/database");
+const userRoutes = require("./routers/user.router");
+
+dotenv.config();
 const app = express();
+app.use(express.json());
 
-app.get("/", function (req, res) {
-    res.send("Hello World!");
-});
+// Sử dụng các router tại đây
+app.use("/api/users", userRoutes);
 
+// Kết nối database
+sequelize
+  .sync()
+  .then(() => console.log("✅ CSDL đã đồng bộ!"))
+  .catch((err) => console.error("❌ Lỗi đồng bộ CSDL:", err));
 
-app.listen(5005, function () {
-    console.log("Started application on port %d", 5005);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () =>
+  console.log(`🚀 Server chạy tại http://localhost:${PORT}`)
+);
