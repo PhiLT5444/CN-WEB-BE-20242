@@ -1,16 +1,16 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const sequelize = require("./config/database");
-const userRoutes = require("./routers/user.router");
+const cartRoutes = require("./routers/cart.router");
+const paymentRoutes = require("./routers/payment.router");
 
 dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Sử dụng các router tại đây
-app.use("/api/users", userRoutes);
+app.use("/api/carts", cartRoutes);
+app.use("/api/payments", paymentRoutes);
 
-// Kết nối database
 sequelize
   .sync()
   .then(() => console.log("✅ CSDL đã đồng bộ!"))
