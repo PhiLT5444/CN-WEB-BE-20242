@@ -30,10 +30,10 @@ const Cart = sequelize.define(
 );
 
 // Thiết lập quan hệ với User & Product
-const User = require("./User");
-const Product = require("./Product");
+// const User = require("./User");
+// const Product = require("./Product");
 
-Cart.belongsTo(User, { foreignKey: "user_id", as: "user" });
-Cart.belongsTo(Product, { foreignKey: "product_id", as: "product" });
+// Cart.belongsTo(User, { foreignKey: "user_id", as: "user" });
+// Cart.belongsTo(Product, { foreignKey: "product_id", as: "product" });
 
 module.exports = Cart;

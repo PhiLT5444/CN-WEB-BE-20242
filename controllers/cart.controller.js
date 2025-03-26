@@ -1,4 +1,4 @@
-const Cart = require("../models/Cart");
+const Cart = require("../models/cart_model");
 
 // Lấy tất cả Cart
 exports.getAllCarts = async (req, res) => {

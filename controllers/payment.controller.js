@@ -1,4 +1,4 @@
-const Payment = require("../models/Payment");
+const Payment = require("../models/payment_model");
 
 // Lấy tất cả các giao dịch thanh toán
 exports.getAllPayments = async (req, res) => {

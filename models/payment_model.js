@@ -51,10 +51,10 @@ const Payment = sequelize.define(
 );
 
 // Thiết lập quan hệ với Order & User
-const Order = require("./Order");
-const User = require("./User");
+// const Order = require("./Order");
+// const User = require("./User");
 
-Payment.belongsTo(Order, { foreignKey: "order_id", as: "order" });
-Payment.belongsTo(User, { foreignKey: "user_id", as: "user" });
+// Payment.belongsTo(Order, { foreignKey: "order_id", as: "order" });
+// Payment.belongsTo(User, { foreignKey: "user_id", as: "user" });
 
 module.exports = Payment;
