@@ -18,7 +18,14 @@ let handleLogin = async (req, res) => {
         user: userData.user ? userData.user : {}
     })
 }
+let createUser = async(req, res) => {
+    let message = await userService.createNewUser(req.body)
+    console.log(message);
+    //console.log(req.body)
+    return res.send('created successfully')
+}
 
 module.exports = {
     handleLogin: handleLogin,
+    createUser: createUser,
 }
