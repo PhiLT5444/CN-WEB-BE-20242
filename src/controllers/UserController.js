@@ -33,8 +33,37 @@ let displayAllUser = async(req, res) => {
         data
     })
 }
+
+let getEditInformation  = async(req, res) => {
+    let userId = req.query.id;
+    console.log(userId)
+
+    // Ham danh gia obj tra ve {} hay la cac du lieu
+    const isEmptyObject = (obj) => Object.keys(obj).length === 0;
+
+    if(userId){
+        let userData = await userService.getUserInfoById(userId)
+        //console.log(userData)
+        if(isEmptyObject(userData)){
+            return res.status(404).json({
+                errMessage: '404 Not Found!'
+            })
+        }
+        else{
+            return res.status(200).json({
+                userData
+            })
+        }
+    }
+    else{
+        return res.status(500).json({
+            errMessage: 'The id query is empty'
+        })
+    }
+}
 module.exports = {
     handleLogin: handleLogin,
     createUser: createUser,
     displayAllUser : displayAllUser,
+    getEditInformation: getEditInformation, 
 }

@@ -1,3 +1,4 @@
+const { where } = require('sequelize');
 const db = require('../models/index')
 const bcrypt = require('bcryptjs')
 const salt = bcrypt.genSaltSync(10);
@@ -119,8 +120,29 @@ let getAllUser = () => {
         }
     })
 }
+
+//get user by Id
+let getUserInfoById = (userId) =>{
+    return new Promise(async(resolve, reject) => {
+        try{
+            let user = await db.users.findOne({
+                where : {id : userId},
+                raw : true,
+                attributes: {exclude: ['password']},
+            })
+            if(user){
+                resolve(user)
+            }else{
+                resolve({})
+            }
+        }catch(e){
+            reject(e);
+        }
+    })
+}
 module.exports ={
     handleUserLogin : handleUserLogin,
     createNewUser : createNewUser,
-    getAllUser : getAllUser
+    getAllUser : getAllUser,
+    getUserInfoById : getUserInfoById,
 }
