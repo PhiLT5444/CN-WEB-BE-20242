@@ -4,8 +4,9 @@ const UserController = require('../controllers/UserController')
 let router = express.Router();
 
 let userRoutes = (app) => {
-    router.post('/api/login', UserController.handleLogin)
-    router.post('/api/create', UserController.createUser)
+    router.post('/api/login', UserController.handleLogin) // login
+    router.post('/api/create', UserController.createUser) // to create your account and create others account by admin
+    router.get('/api/getAllUser', UserController.displayAllUser) // for admin function
 
     return app.use("/", router);
 }

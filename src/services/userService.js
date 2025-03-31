@@ -19,6 +19,7 @@ let handleUserLogin = (email, password) => {
                         userData.errCode = 0;
                         userData.errMessage = 'OK';
                         //raw: true;
+                        // delete password for user api 
                         let userObj = user.get({plain: true});
                         delete userObj.password;
                         userData.user = userObj;
@@ -95,7 +96,31 @@ let hashUserPassword = (password) =>{
     })
 }
 
+// getAllUser
+let getAllUser = () => {
+    return new Promise(async(resolve, reject) =>{
+        try{
+            let users = await db.users.findAll({
+                raw: true,
+                attributes: {exclude: ['password']},
+            });
+            /* Cach 2
+            let users = await db.users.findAll();
+            let cleanUser = users.map(user => {
+                let obj = user.get({plain : true});
+                delete obj.password;
+                return obj;
+                });
+            resolve(cleanUser)
+            */
+            resolve(users)
+        }catch(e){
+            reject(e);
+        }
+    })
+}
 module.exports ={
     handleUserLogin : handleUserLogin,
-    createNewUser : createNewUser
+    createNewUser : createNewUser,
+    getAllUser : getAllUser
 }
