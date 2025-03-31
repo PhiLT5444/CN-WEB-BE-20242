@@ -1,4 +1,8 @@
 'use strict';
+//adress 
+//gender 
+//full name
+//phone number
 const {
   Model
 } = require('sequelize');

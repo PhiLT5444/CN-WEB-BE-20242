@@ -140,9 +140,37 @@ let getUserInfoById = (userId) =>{
         }
     })
 }
+
+let updateUserData = (userId, data) => {
+    return new Promise(async(resolve, reject) => {
+        try{
+            let user = await db.users.findOne({
+                where: {id: userId},
+            })
+            if(user){
+                console.log(user)
+                user.username = data.username || user.username;
+                await user.save();
+                resolve({
+                    errCode : 0,
+                    errMessage: 'Updated successfully'
+                });
+            }
+            else{
+                resolve({
+                    errCode : 1,
+                    errMessage: 'User not found!'
+                });
+            }
+        }catch(e){
+            reject(e);
+        }
+    })
+}
 module.exports ={
     handleUserLogin : handleUserLogin,
     createNewUser : createNewUser,
     getAllUser : getAllUser,
     getUserInfoById : getUserInfoById,
+    updateUserData: updateUserData,
 }

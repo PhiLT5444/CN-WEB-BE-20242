@@ -61,9 +61,18 @@ let getEditInformation  = async(req, res) => {
         })
     }
 }
+
+let updateUser = async(req, res) =>{
+    let userId = req.params.id;
+    // console.log('the id number is: ')
+    // console.log(req.params.id)
+    const result = await userService.updateUserData(userId, req.body);
+    return res.status(200).json(result);
+}
 module.exports = {
     handleLogin: handleLogin,
     createUser: createUser,
     displayAllUser : displayAllUser,
     getEditInformation: getEditInformation, 
+    updateUser: updateUser,
 }
