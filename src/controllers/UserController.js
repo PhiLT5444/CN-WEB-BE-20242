@@ -54,7 +54,7 @@ let displayAllUser = async(req, res) => {
 }
 
 let getEditInformation  = async(req, res) => {
-    let userId = req.query.id;
+    let userId = req.params.id;
     console.log(userId)
 
     // Ham danh gia obj tra ve {} hay la cac du lieu
