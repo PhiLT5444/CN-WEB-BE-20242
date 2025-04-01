@@ -10,20 +10,31 @@ let handleUserLogin = (email, password) => {
             let isExist = await checkUserEmail(email);
             if(isExist){
                 let user = await db.users.findOne({
-                    attributes : ['email', 'role', 'password'],
-                    where: {email : email}
+                    //attributes : ['email', 'role', 'password', 'id'],
+                    where: {
+                        email : email,
+                        status: 'active',
+                    }
                 });
                 if(user){
                     //compare password 
-                    let check = await bcrypt.compareSync(password, user.password);
+                    let check = await bcrypt.compare(password, user.password);
                     if(check){
                         userData.errCode = 0;
                         userData.errMessage = 'OK';
                         //raw: true;
                         // delete password for user api 
-                        let userObj = user.get({plain: true});
-                        delete userObj.password;
-                        userData.user = userObj;
+                        // let userObj = user.get({plain: true});
+                        // delete userObj.password;
+                        // userData.user = userObj;
+                        // userData.id = user.id;
+                        // userData.role = user.role;
+                        userData.user = {
+                            id: user.id,
+                            role: user.role,
+                            email: user.email,
+                            username: user.username
+                        }
                     }else{
                         userData.errCode = 3;
                         userData.errMessage = 'Wrong password';
@@ -153,7 +164,7 @@ let updateUserData = (userId, data) => {
                 await user.save();
                 resolve({
                     errCode : 0,
-                    errMessage: 'Updated successfully'
+                    errMessage: 'Updated successfully!'
                 });
             }
             else{
@@ -167,10 +178,36 @@ let updateUserData = (userId, data) => {
         }
     })
 }
+
+let deleteUserById = (userId)=>{
+    return new Promise(async(resolve, reject) => {
+        try{
+            let user = await db.users.findOne({
+                where: {id: userId}
+            })
+            if(user){
+                await user.destroy();
+                resolve({
+                    errCode: 0,
+                    errMessage: `Deleted Successfully!`
+                });
+            }   
+            else{
+                resolve({
+                    errCode: 1,
+                    errMessage: `User not found!`
+                });
+            }
+        }catch(e){
+            reject(e)
+        }
+    })
+}
 module.exports ={
     handleUserLogin : handleUserLogin,
     createNewUser : createNewUser,
     getAllUser : getAllUser,
     getUserInfoById : getUserInfoById,
     updateUserData: updateUserData,
+    deleteUserById: deleteUserById,
 }

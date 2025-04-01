@@ -1,22 +1,41 @@
+// const { config } = require('dotenv');
 const userService = require('../services/userService')
+const jwt = require('jsonwebtoken')
+require('dotenv').config();
+
 let handleLogin = async (req, res) => {
     let email = req.body.email;
     let password = req.body.password;
 
     if(!email || !password){
-        res.status(500).json({
+        return res.status(400).json({
             errCode: 1,
             message: 'Missing inputs parameter!'
         })
     }
 
     let userData = await userService.handleUserLogin(email, password);
-    console.log(userData)
-    return res.status(200).json({
-        errCode: userData.errCode,
-        message: userData.errMessage,
-        user: userData.user ? userData.user : {}
-    })
+    //console.log(userData)
+    if(userData.errCode == 0){
+        const payload = {
+            id: userData.user.id,
+            role: userData.user.role
+        };
+
+        const secret = process.env.JWT_SECRET;
+        const token = jwt.sign(payload, secret, {expiresIn: '2h'});
+        console.log(token)
+        return res.status(200).json({
+            message: userData.errMessage, 
+            token,
+            user: userData.user,
+        })
+    }
+    else{
+        return res.status(404).json({
+            message: userData.errMessage,
+        })
+    }
 }
 
 let createUser = async(req, res) => {
@@ -67,7 +86,22 @@ let updateUser = async(req, res) =>{
     // console.log('the id number is: ')
     // console.log(req.params.id)
     const result = await userService.updateUserData(userId, req.body);
+    //return res.status(200).json(result);
+    if(result.errCode == 1){
+        return res.status(404).json(result);
+    }
     return res.status(200).json(result);
+}
+
+let deleteUser = async(req, res)=>{
+    let id = req.params.id;
+    const result = await userService.deleteUserById(id);
+    //return res.send('Delete the user succeed')
+    //return res.status(200).json(result);
+    if(result.errCode == 1){
+        return res.status(404).json(result);
+    }
+    return res.status(200).json(result)
 }
 module.exports = {
     handleLogin: handleLogin,
@@ -75,4 +109,5 @@ module.exports = {
     displayAllUser : displayAllUser,
     getEditInformation: getEditInformation, 
     updateUser: updateUser,
+    deleteUser: deleteUser,
 }
