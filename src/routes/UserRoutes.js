@@ -12,11 +12,10 @@ let userRoutes = (app) => {
     router.get('/api/getAllUser',authenticate, roleRequired('admin'), UserController.displayAllUser) // for admin function
     router.get('/api/getUserById/:id',authenticate, UserController.getEditInformation) // get user info by id 
 
-    
     router.post('/api/userUpdate/',authenticate, UserController.updateUser) // update user information
-    //statistic; quen mat khau;
+    //forgot password
     
-    router.post('/api/punish/:id', authenticate, roleRequired('admin'), UserController.getPunishmentOnUser); 
+    router.post('/api/punish/:id', authenticate, roleRequired('admin'), UserController.getPunishmentOnUser); //ban user
     router.post('/api/userDelete/:id',authenticate, roleRequired('admin'), UserController.deleteUser) // delete user 
 
     return app.use("/", router);

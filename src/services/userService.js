@@ -142,6 +142,16 @@ let hashUserPassword = (password) =>{
 let getAllUser = () => {
     return new Promise(async(resolve, reject) =>{
         try{
+            const activeUser = await db.users.count({
+                where: {
+                    status : 'active',
+                }
+            })
+            const bannedUser = await db.users.count({
+                where: {
+                    status : 'banned',
+                }
+            })
             let users = await db.users.findAll({
                 raw: true,
                 attributes: {exclude: ['password']},
@@ -155,7 +165,11 @@ let getAllUser = () => {
                 });
             resolve(cleanUser)
             */
-            resolve(users)
+            resolve({
+                activeUser: activeUser,
+                bannedUser: bannedUser,
+                users
+            })
         }catch(e){
             reject(e);
         }
