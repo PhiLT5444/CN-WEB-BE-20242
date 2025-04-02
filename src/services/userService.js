@@ -13,31 +13,36 @@ let handleUserLogin = (email, password) => {
                     //attributes : ['email', 'role', 'password', 'id'],
                     where: {
                         email : email,
-                        status: 'active',
                     }
                 });
                 if(user){
                     //compare password 
-                    let check = await bcrypt.compare(password, user.password);
-                    if(check){
-                        userData.errCode = 0;
-                        userData.errMessage = 'OK';
-                        //raw: true;
-                        // delete password for user api 
-                        // let userObj = user.get({plain: true});
-                        // delete userObj.password;
-                        // userData.user = userObj;
-                        // userData.id = user.id;
-                        // userData.role = user.role;
-                        userData.user = {
-                            id: user.id,
-                            role: user.role,
-                            email: user.email,
-                            username: user.username
+                    if(user.status == 'banned'){
+                        userData.errCode = 4;
+                        userData.errMessage = 'You are banned!';
+                    }
+                    else{
+                        let check = await bcrypt.compare(password, user.password);
+                        if(check){
+                            userData.errCode = 0;
+                            userData.errMessage = 'OK';
+                            //raw: true;
+                            // delete password for user api 
+                            // let userObj = user.get({plain: true});
+                            // delete userObj.password;
+                            // userData.user = userObj;
+                            // userData.id = user.id;
+                            // userData.role = user.role;
+                            userData.user = {
+                                id: user.id,
+                                role: user.role,
+                                email: user.email,
+                                username: user.username
+                            }
+                        }else{
+                            userData.errCode = 3;
+                            userData.errMessage = 'Wrong password';
                         }
-                    }else{
-                        userData.errCode = 3;
-                        userData.errMessage = 'Wrong password';
                     }
                 }else{
                     userData.errCode = 2;
@@ -83,14 +88,39 @@ let checkUserEmail = (userEmail) => {
 let createNewUser = async(data) => {
     return new Promise(async(resolve, reject) => {
         try{
-            let hashPasswordFromBcrypt = await hashUserPassword(data.password);
-            await db.users.create({
-                username : data.username,
-                email: data.email,
-                password: hashPasswordFromBcrypt,
-                role: data.role
+            let user1 = await db.users.findOne({
+                where: {email: data.email}
+            });
+            let user2 = await db.users.findOne({
+                where: {username: data.username}
             })
-            resolve('ok create a new user succeed!')
+            if(user1){
+                resolve({
+                    errCode: 2,
+                    errMessage: 'This email was used!',
+                });
+            }
+            else{
+                if(user2){
+                    resolve({
+                        errCode: 1,
+                        errMessage: 'This username was used!',
+                    });
+                }
+                else{
+                    let hashPasswordFromBcrypt = await hashUserPassword(data.password);
+                    await db.users.create({
+                    username : data.username,
+                    email: data.email,
+                    password: hashPasswordFromBcrypt,
+                    role: data.role
+                    })
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'ok create a new user succeed!',
+                    });
+                }
+            }
         }catch(e){
             reject(e);
         }
@@ -203,6 +233,32 @@ let deleteUserById = (userId)=>{
         }
     })
 }
+
+let banUser = (userId) =>{
+    return new Promise(async(resolve, reject)=>{
+        try{
+            let user = await db.users.findOne({
+                where: {id : userId}
+            })
+            if(user){
+                user.status = 'banned';
+                await user.save();
+                return resolve({
+                    errCode: 0,
+                    errMessage: 'Done!',
+                })
+            }
+            else{
+                return resolve({
+                    errCode: 1,
+                    errMessage: 'User not found!',
+                })
+            }
+        }catch(e){
+            reject(e);
+        }
+    })
+}
 module.exports ={
     handleUserLogin : handleUserLogin,
     createNewUser : createNewUser,
@@ -210,4 +266,5 @@ module.exports ={
     getUserInfoById : getUserInfoById,
     updateUserData: updateUserData,
     deleteUserById: deleteUserById,
+    banUser: banUser,
 }

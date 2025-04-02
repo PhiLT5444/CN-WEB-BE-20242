@@ -103,6 +103,16 @@ let deleteUser = async(req, res)=>{
     }
     return res.status(200).json(result)
 }
+
+let getPunishmentOnUser = async(req, res)=>{
+    let id = req.params.id;
+    const result = await userService.banUser(id);
+    if(result.errCode == 1){
+        return res.status(400).json(result);
+    }
+    return res.status(200).json(result);
+}
+
 module.exports = {
     handleLogin: handleLogin,
     createUser: createUser,
@@ -110,4 +120,5 @@ module.exports = {
     getEditInformation: getEditInformation, 
     updateUser: updateUser,
     deleteUser: deleteUser,
+    getPunishmentOnUser: getPunishmentOnUser,
 }
