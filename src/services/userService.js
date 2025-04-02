@@ -259,6 +259,52 @@ let banUser = (userId) =>{
         }
     })
 }
+
+let changeYourPassword = (userId, oldPW, newPW, confirmPW) =>{
+    return new Promise(async(resolve, reject)=>{
+        try{
+            const user = await db.users.findOne({
+                where: {id : userId}
+            });
+            if(user){
+                const isMatch = await bcrypt.compare(oldPW, user.password);
+                if(!isMatch){
+                    resolve({
+                        errCode : 2,
+                        errMessage: 'Wrong password'
+                    })
+                }
+                else{
+                    if(newPW !== confirmPW){
+                       resolve({
+                            errCode : 3,
+                            errMessage: 'confirmPW is different from newPW'
+                       })
+                    }
+                    else{
+                        const hashedNewPW = await bcrypt.hash(newPW, salt);
+                        await user.update({
+                            password: hashedNewPW
+                        });
+                        resolve({
+                            errCode: 0,
+                            errMessage: 'Successfully!'
+                        })
+                    }
+                }
+            }
+            else{
+                resolve({
+                    errCode : 1,
+                    errMessage: 'User not found!'
+                })
+            }
+        }
+        catch(err){
+            reject(err);
+        }
+    })
+}
 module.exports ={
     handleUserLogin : handleUserLogin,
     createNewUser : createNewUser,
@@ -267,4 +313,5 @@ module.exports ={
     updateUserData: updateUserData,
     deleteUserById: deleteUserById,
     banUser: banUser,
+    changeYourPassword: changeYourPassword,
 }

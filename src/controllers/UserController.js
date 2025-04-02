@@ -82,7 +82,7 @@ let getEditInformation  = async(req, res) => {
 }
 
 let updateUser = async(req, res) =>{
-    let userId = req.params.id;
+    let userId = req.user.id;
     // console.log('the id number is: ')
     // console.log(req.params.id)
     const result = await userService.updateUserData(userId, req.body);
@@ -113,6 +113,19 @@ let getPunishmentOnUser = async(req, res)=>{
     return res.status(200).json(result);
 }
 
+let changePassword = async(req, res)=>{
+    let oldPW = req.body.currentPassword;
+    let newPW = req.body.newPassword;
+    let confirmPW = req.body.confirmPW;
+    //let id = req.params.id;
+    id = req.user.id;
+    const result = await userService.changeYourPassword(id, oldPW, newPW, confirmPW);
+    if(result.errCode != 0){
+        return res.status(400).json(result);
+    }
+    return res.status(200).json(result);
+}
+
 module.exports = {
     handleLogin: handleLogin,
     createUser: createUser,
@@ -121,4 +134,5 @@ module.exports = {
     updateUser: updateUser,
     deleteUser: deleteUser,
     getPunishmentOnUser: getPunishmentOnUser,
+    changePassword: changePassword,
 }

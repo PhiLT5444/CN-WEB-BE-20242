@@ -7,12 +7,14 @@ let userRoutes = (app) => {
     router.post('/api/login', UserController.handleLogin) // login
     router.post('/api/createUser', UserController.createUser) // to create your account and create others account by admin
     // log out : delete token will be implemented in client-side (front-end)
+    router.post('/api/changePassword/', authenticate, UserController.changePassword) //update your password
 
     router.get('/api/getAllUser',authenticate, roleRequired('admin'), UserController.displayAllUser) // for admin function
     router.get('/api/getUserById/:id',authenticate, UserController.getEditInformation) // get user info by id 
 
-    router.post('/api/userUpdate/:id',authenticate, isSelf, UserController.updateUser) // update user information
-    //statistic; quen mat khau; doi mat khau 
+    
+    router.post('/api/userUpdate/',authenticate, UserController.updateUser) // update user information
+    //statistic; quen mat khau;
     
     router.post('/api/punish/:id', authenticate, roleRequired('admin'), UserController.getPunishmentOnUser); 
     router.post('/api/userDelete/:id',authenticate, roleRequired('admin'), UserController.deleteUser) // delete user 
