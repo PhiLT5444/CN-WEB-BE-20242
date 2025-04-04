@@ -114,9 +114,10 @@ let getPunishmentOnUser = async(req, res)=>{
 }
 
 let changePassword = async(req, res)=>{
-    let oldPW = req.body.currentPassword;
-    let newPW = req.body.newPassword;
-    let confirmPW = req.body.confirmPW;
+    // let oldPW = req.body.currentPassword;
+    // let newPW = req.body.newPassword;
+    // let confirmPW = req.body.confirmPW;
+    let {oldPW, newPW, confirmPW} = req.body;
     //let id = req.params.id;
     id = req.user.id;
     const result = await userService.changeYourPassword(id, oldPW, newPW, confirmPW);

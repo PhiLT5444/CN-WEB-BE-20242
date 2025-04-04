@@ -50,13 +50,13 @@ const roleRequired = (requireRole)=>{
 }
 
 // For your self (update information, check your order list )
-const isSelf = (req, res, next)=>{
-    const id = parseInt(req.params.id || req.body.id);
-    if(!req.user || req.user.id !== id){
-        return res.status(403).json({message: `You are not allowed at this activity! `})
-    }
-    next();
-}
+// const isSelf = (req, res, next)=>{
+//     const id = parseInt(req.params.id || req.body.id);
+//     if(!req.user || req.user.id !== id){
+//         return res.status(403).json({message: `You are not allowed at this activity! `})
+//     }
+//     next();
+// }
 
 //Middle for many roles
 
@@ -70,7 +70,7 @@ const isSelf = (req, res, next)=>{
 // }
 
 module.exports = {
-    isSelf, 
+    //isSelf, 
     authenticate, 
     roleRequired,
 }

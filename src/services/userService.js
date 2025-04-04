@@ -37,7 +37,11 @@ let handleUserLogin = (email, password) => {
                                 id: user.id,
                                 role: user.role,
                                 email: user.email,
-                                username: user.username
+                                username: user.username,
+                                full_name: user.full_name,
+                                gender: user.gender,
+                                address: user.address,
+                                phone_number: user.phone_number,
                             }
                         }else{
                             userData.errCode = 3;
@@ -94,31 +98,46 @@ let createNewUser = async(data) => {
             let user2 = await db.users.findOne({
                 where: {username: data.username}
             })
+            let user3 = await db.users.findOne({
+                where : {phone_number: data.phone_number}
+            })
             if(user1){
                 resolve({
-                    errCode: 2,
+                    errCode: 3,
                     errMessage: 'This email was used!',
                 });
             }
             else{
                 if(user2){
                     resolve({
-                        errCode: 1,
+                        errCode: 2,
                         errMessage: 'This username was used!',
                     });
                 }
                 else{
-                    let hashPasswordFromBcrypt = await hashUserPassword(data.password);
-                    await db.users.create({
-                    username : data.username,
-                    email: data.email,
-                    password: hashPasswordFromBcrypt,
-                    role: data.role
-                    })
-                    resolve({
-                        errCode: 0,
-                        errMessage: 'ok create a new user succeed!',
-                    });
+                    if(user3){
+                        resolve({
+                            errCode: 1,
+                            errMessage: 'This phone number was used!', 
+                        });
+                    }
+                    else{   
+                        let hashPasswordFromBcrypt = await hashUserPassword(data.password);
+                        await db.users.create({
+                        username : data.username,
+                        email: data.email,
+                        password: hashPasswordFromBcrypt,
+                        //role: data.role,
+                        full_name: data.full_name,
+                        gender: data.full_name,
+                        address: data.address,
+                        phone_number: data.phone_number,
+                        })
+                        resolve({
+                            errCode: 0,
+                            errMessage: 'ok create a new user succeed!',
+                        });
+                    }
                 }
             }
         }catch(e){
@@ -203,13 +222,39 @@ let updateUserData = (userId, data) => {
                 where: {id: userId},
             })
             if(user){
-                console.log(user)
-                user.username = data.username || user.username;
-                await user.save();
-                resolve({
-                    errCode : 0,
-                    errMessage: 'Updated successfully!'
-                });
+                let user1 = await db.users.findOne({
+                    where: {username: data.username}
+                })
+                let user2 = await db.users.findOne({
+                    where: {phone_number: data.phone_number}
+                })
+                if(user1){
+                    resolve({
+                        errCode: 2,
+                        errMessage: "This username was used!"
+                    });
+                }
+                else{
+                    if(user2){
+                        resolve({
+                            errCode: 3,
+                            errMessage: "This phone number was used!"
+                        });
+                    }
+                    else{
+                        console.log(user)
+                        user.username = data.username || user.username;
+                        user.full_name = data.full_name || user.full_name;
+                        user.gender = data.gender || user.gender;
+                        user.address = data.address || user.address;
+                        user.phone_number = data.phone_number || user.phone_number;
+                        await user.save();
+                        resolve({
+                            errCode : 0,
+                            errMessage: 'Updated successfully!'
+                        });
+                    }
+                }
             }
             else{
                 resolve({

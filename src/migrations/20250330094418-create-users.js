@@ -35,6 +35,23 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
+      address: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      gender: {
+        type: Sequelize.ENUM('male', 'female', 'other'),
+        defaultValue: 'other' 
+      },
+      full_name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      phone_number: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
+      },
       created_at: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP',)

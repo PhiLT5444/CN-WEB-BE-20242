@@ -13,7 +13,7 @@ let userRoutes = (app) => {
     router.get('/api/getUserById/:id',authenticate, UserController.getEditInformation) // get user info by id 
 
     router.post('/api/userUpdate/',authenticate, UserController.updateUser) // update user information
-    //forgot password
+    //forgot password ??? 
     
     router.post('/api/punish/:id', authenticate, roleRequired('admin'), UserController.getPunishmentOnUser); //ban user
     router.post('/api/userDelete/:id',authenticate, roleRequired('admin'), UserController.deleteUser) // delete user 

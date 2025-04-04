@@ -53,6 +53,23 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    gender: {
+      type: DataTypes.ENUM('male', 'female', 'other'),
+      defaultValue: 'other'
+    },
+    full_name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    phone_number: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
