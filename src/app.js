@@ -10,6 +10,8 @@ app.use(express.json());
 
 // Sử dụng routes
 app.use('/api', userRoutes);
+// paymentRoutes
+app.use('/api/payment', require('./routes/paymentRoutes'));
 
 // Đồng bộ database
 sequelize.sync({ force: false }).then(() => {
