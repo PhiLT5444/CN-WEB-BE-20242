@@ -20,3 +20,17 @@ exports.createUser = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
+
+exports.getAllUser = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      where: {
+        username: "tuanphi2"
+      }
+    })    
+    res.status(200).json({data: users });
+  } catch (error) {
+    console.error('❌ Lỗi khi lấy user:', error);
+    res.status(500).json({ message: 'Lỗi server', error: error.message });
+  }
+};
