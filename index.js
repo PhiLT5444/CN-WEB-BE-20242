@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const sequelize = require("./config/database");
 const cartRoutes = require("./routers/cart.router");
 const paymentRoutes = require("./routers/payment.router");
+const productRoutes = require("./routers/product.router");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
@@ -27,6 +28,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/carts", cartRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/products", productRoutes);
 
 sequelize
   .sync()

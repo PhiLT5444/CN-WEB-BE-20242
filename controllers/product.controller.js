@@ -1,0 +1,111 @@
+const { Op } = require("sequelize");
+const Product = require("../models/product_model");
+
+exports.searchProducts = async (req, res) => {
+  const { keyword, category } = req.query;
+  const where = {};
+  if (keyword) where.name = { [Op.like]: `%${keyword}%` };
+  if (category) where.category_id = category;
+
+  try {
+    const products = await Product.findAll({ where });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: "Lỗi tìm kiếm sản phẩm" });
+  }
+};
+
+exports.getProductById = async (req, res) => {
+  try {
+    const product = await Product.findByPk(req.params.id);
+    if (!product) return res.status(404).json({ error: "Không tìm thấy" });
+    res.json(product);
+  } catch {
+    res.status(500).json({ error: "Lỗi lấy sản phẩm" });
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  try {
+    await Product.update(req.body, { where: { id: req.params.id } });
+    res.json({ message: "Đã cập nhật" });
+  } catch {
+    res.status(500).json({ error: "Lỗi cập nhật" });
+  }
+};
+
+exports.deleteProduct = async (req, res) => {
+  try {
+    await Product.destroy({ where: { id: req.params.id } });
+    res.json({ message: "Đã xóa" });
+  } catch {
+    res.status(500).json({ error: "Lỗi xóa" });
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  try {
+    const [updated] = await Product.update(req.body, {
+      where: { id: req.params.id }
+    });
+
+    if (updated) {
+      res.json({ message: "Đã cập nhật sản phẩm" });
+    } else {
+      res.status(404).json({ error: "Không tìm thấy sản phẩm để cập nhật" });
+    }
+  } catch {
+    res.status(500).json({ error: "Lỗi cập nhật sản phẩm" });
+  }
+};
+
+
+exports.assignCategoryToProduct = async (req, res) => {
+  try {
+    await Product.update(
+      { category_id: req.body.category_id },
+      { where: { id: req.params.id } }
+    );
+    res.json({ message: "Đã phân loại sản phẩm" });
+  } catch {
+    res.status(500).json({ error: "Lỗi phân loại" });
+  }
+};
+
+const Category = require("../models/category_model");
+
+exports.createCategory = async (req, res) => {
+  try {
+    const category = await Category.create(req.body);
+    res.json(category);
+  } catch {
+    res.status(500).json({ error: "Lỗi thêm danh mục" });
+  }
+};
+
+exports.deleteCategory = async (req, res) => {
+  try {
+    await Category.destroy({ where: { id: req.params.id } });
+    res.json({ message: "Đã xóa danh mục" });
+  } catch {
+    res.status(500).json({ error: "Lỗi xóa danh mục" });
+  }
+};
+
+exports.checkStock = async (req, res) => {
+  try {
+    const allStock = await Product.findAll({
+      attributes: ["id", "name", "stock"],
+    });
+
+    res.json(
+      allStock.map((p) => ({
+        id: p.id,
+        name: p.name,
+        stock: p.stock,
+      }))
+    );
+  } catch {
+    res.status(500).json({ error: "Lỗi kiểm tra tồn kho" });
+  }
+};
