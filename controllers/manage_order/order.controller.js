@@ -87,7 +87,7 @@ exports.assignShipper = async (req, res) => {
     const { shipper_id } = req.body;
     try {
         const order = await Order.findByPk(orderId);
-        if (!order) return res.status(404).json({ message: "Order not found" });
+        if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
         order.shipper_id = shipper_id;
         order.status = "processing"; // Giao hàng
@@ -116,7 +116,7 @@ exports.updateOrderStatus = async (req, res) => {
     const { status } = req.body;
     try {
         const order = await Order.findByPk(orderId);
-        if (!order) return res.status(404).json({ message: "Order not found" });
+        if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
         order.status = status;
         await order.save();
@@ -131,7 +131,7 @@ exports.markOrderAsFailed = async (req, res) => {
     const { orderId } = req.params;
     try {
         const order = await Order.findByPk(orderId);
-        if (!order) return res.status(404).json({ message: "Order not found" });
+        if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
         order.status = "failed";
         await order.save();
