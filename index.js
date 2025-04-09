@@ -2,13 +2,17 @@ const express = require('express');
 const dotenv = require('dotenv');
 const sequelize = require('./config/database');
 const userRoutes = require('./routers/user.router');
+const orderRoutes = require('./routers/order.router');
 
 dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Sử dụng các router tại đây
+//API user
 app.use('/api/users', userRoutes);
+
+//API order
+app.use('/api/order', orderRoutes)
 
 // Kết nối database
 sequelize.sync()
