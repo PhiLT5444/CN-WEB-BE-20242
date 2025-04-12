@@ -1,5 +1,6 @@
 'use strict';
 
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
@@ -27,7 +28,10 @@ fs
     );
   })
   .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    const modelModule = require(path.join(__dirname, file));
+    const model = modelModule.prototype instanceof Sequelize.Model
+      ? new modelModule(sequelize, Sequelize.DataTypes) // Nếu là class, khởi tạo bằng `new`
+      : modelModule(sequelize, Sequelize.DataTypes); // Nếu là hàm, gọi trực tiếp
     db[model.name] = model;
   });
 
