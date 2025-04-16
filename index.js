@@ -26,8 +26,8 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.use("/api/carts", cartRoutes);
-app.use("/api/payments", paymentRoutes);
+// app.use("/api/carts", cartRoutes);
+// app.use("/api/payments", paymentRoutes);
 app.use("/api/products", productRoutes);
 
 sequelize
