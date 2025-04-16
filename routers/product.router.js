@@ -1,7 +1,67 @@
 const express = require("express");
 const router = express.Router();
 const productController = require("../controllers/product.controller");
+const {
+  validateAddProduct,
+  validateUpdateProduct,
+  validateDeleteProduct,
+} = require("../middlewares/product.validator");
 
+/**
+ * @swagger
+ * /api/products:
+ *   post:
+ *     tags:
+ *       - Product
+ *     summary: Thêm sản phẩm mới
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Tên sản phẩm
+ *                 example: "Điện thoại iPhone 14"
+ *               price:
+ *                 type: number
+ *                 format: float
+ *                 description: Giá sản phẩm
+ *                 example: 1999.99
+ *               stock:
+ *                 type: integer
+ *                 description: Số lượng tồn kho
+ *                 example: 100
+ *               description:
+ *                 type: string
+ *                 description: Mô tả sản phẩm
+ *                 example: "Sản phẩm mới nhất của Apple"
+ *               category_id:
+ *                 type: integer
+ *                 description: ID danh mục sản phẩm
+ *                 example: 1
+ *               branch_id:
+ *                 type: integer
+ *                 description: ID chi nhánh
+ *                 example: 2
+ *               discount:
+ *                 type: number
+ *                 format: float
+ *                 description: Phần trăm giảm giá
+ *                 example: 10.5
+ *               image_url:
+ *                 type: string
+ *                 description: URL hình ảnh sản phẩm
+ *                 example: "https://example.com/image.jpg"
+ *     responses:
+ *       201:
+ *         description: Đã thêm sản phẩm thành công
+ *       500:
+ *         description: Lỗi thêm sản phẩm
+ */
+router.post("/", validateAddProduct, productController.addProduct);
 /**
  * @swagger
  * /api/products/search:
@@ -74,7 +134,7 @@ router.get("/:id", productController.getProductById);
  *       500:
  *         description: Lỗi xóa sản phẩm
  */
-router.delete("/:id", productController.deleteProduct);
+router.delete("/:id", validateDeleteProduct, productController.deleteProduct);
 
 /**
  * @swagger
@@ -126,7 +186,11 @@ router.delete("/:id", productController.deleteProduct);
  *         description: Lỗi máy chủ
  */
 
-router.put("/:id/status", productController.updateProduct);
+router.put(
+  "/:id/status",
+  validateUpdateProduct,
+  productController.updateProduct
+);
 
 /**
  * @swagger
@@ -173,10 +237,20 @@ router.put("/:id/category", productController.assignCategoryToProduct);
  *           schema:
  *             type: object
  *             properties:
+ *               id:
+ *                 type: integer
+ *                 description: ID của danh mục (tùy chọn, nếu không sẽ tự động tăng)
+ *                 example: 10
  *               name:
  *                 type: string
+ *                 description: Tên danh mục
+ *                 example: "Điện thoại"
+ *               description:
+ *                 type: string
+ *                 description: Mô tả danh mục
+ *                 example: "Danh mục các sản phẩm điện thoại"
  *     responses:
- *       200:
+ *       201:
  *         description: Đã thêm danh mục thành công
  *       500:
  *         description: Lỗi thêm danh mục

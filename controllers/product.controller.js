@@ -46,7 +46,7 @@ exports.deleteProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const [updated] = await Product.update(req.body, {
-      where: { id: req.params.id }
+      where: { id: req.params.id },
     });
 
     if (updated) {
@@ -58,7 +58,6 @@ exports.updateProduct = async (req, res) => {
     res.status(500).json({ error: "Lỗi cập nhật sản phẩm" });
   }
 };
-
 
 exports.assignCategoryToProduct = async (req, res) => {
   try {
@@ -76,10 +75,14 @@ const Category = require("../models/category_model");
 
 exports.createCategory = async (req, res) => {
   try {
-    const category = await Category.create(req.body);
-    res.json(category);
-  } catch {
-    res.status(500).json({ error: "Lỗi thêm danh mục" });
+    const { id, name, description } = req.body;
+
+    // Tạo danh mục với các trường được cung cấp
+    const category = await Category.create({ id, name, description });
+
+    res.status(201).json({ message: "Đã thêm danh mục thành công", category });
+  } catch (err) {
+    res.status(500).json({ error: "Lỗi thêm danh mục", details: err.message });
   }
 };
 
@@ -107,5 +110,14 @@ exports.checkStock = async (req, res) => {
     );
   } catch {
     res.status(500).json({ error: "Lỗi kiểm tra tồn kho" });
+  }
+};
+
+exports.addProduct = async (req, res) => {
+  try {
+    const product = await Product.create(req.body);
+    res.status(201).json({ message: "Đã thêm sản phẩm thành công", product });
+  } catch (err) {
+    res.status(500).json({ error: "Lỗi thêm sản phẩm", details: err.message });
   }
 };
