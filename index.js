@@ -6,6 +6,8 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const userRoutes = require("./routers/user.router");
 const orderRoutes = require("./routers/order.router");
+//Import route thanh toán
+const paymentRoutes = require("./routers/paymentRoutes");
 
 dotenv.config();
 const app = express();
@@ -32,6 +34,9 @@ app.use("/api/users", userRoutes);
 
 //API order
 app.use("/api/orders", orderRoutes);
+
+//API thanh toán - tích hợp module thanh toán
+app.use("/api/payment", paymentRoutes);
 
 sequelize
   .sync()
