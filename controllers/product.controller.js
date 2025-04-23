@@ -1,5 +1,13 @@
 const { Op } = require("sequelize");
-const Product = require("../models/product_model");
+const sequelize = require("../config/database");
+const Product = require("../models_gen/products")(
+  sequelize,
+  sequelize.DataTypes
+);
+const Category = require("../models_gen/categories")(
+  sequelize,
+  sequelize.DataTypes
+);
 
 exports.searchProducts = async (req, res) => {
   const { keyword, category } = req.query;
@@ -27,24 +35,6 @@ exports.getProductById = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    await Product.update(req.body, { where: { id: req.params.id } });
-    res.json({ message: "Đã cập nhật" });
-  } catch {
-    res.status(500).json({ error: "Lỗi cập nhật" });
-  }
-};
-
-exports.deleteProduct = async (req, res) => {
-  try {
-    await Product.destroy({ where: { id: req.params.id } });
-    res.json({ message: "Đã xóa" });
-  } catch {
-    res.status(500).json({ error: "Lỗi xóa" });
-  }
-};
-
-exports.updateProduct = async (req, res) => {
-  try {
     const [updated] = await Product.update(req.body, {
       where: { id: req.params.id },
     });
@@ -59,6 +49,15 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
+exports.deleteProduct = async (req, res) => {
+  try {
+    await Product.destroy({ where: { id: req.params.id } });
+    res.json({ message: "Đã xóa" });
+  } catch {
+    res.status(500).json({ error: "Lỗi xóa" });
+  }
+};
+
 exports.assignCategoryToProduct = async (req, res) => {
   try {
     await Product.update(
@@ -70,8 +69,6 @@ exports.assignCategoryToProduct = async (req, res) => {
     res.status(500).json({ error: "Lỗi phân loại" });
   }
 };
-
-const Category = require("../models/category_model");
 
 exports.createCategory = async (req, res) => {
   try {
