@@ -40,9 +40,7 @@ let handleLogin = async (req, res) => {
 
 let createUser = async(req, res) => {
     let message = await userService.createNewUser(req.body)
-    console.log(message);
-    //console.log(req.body)
-    return res.send('created successfully')
+    return res.status(200).json(message);
 }
 
 let displayAllUser = async(req, res) => {
@@ -87,9 +85,6 @@ let updateUser = async(req, res) =>{
     // console.log(req.params.id)
     const result = await userService.updateUserData(userId, req.body);
     //return res.status(200).json(result);
-    if(result.errCode == 1){
-        return res.status(404).json(result);
-    }
     return res.status(200).json(result);
 }
 

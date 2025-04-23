@@ -45,17 +45,17 @@ let handleUserLogin = (email, password) => {
                             }
                         }else{
                             userData.errCode = 3;
-                            userData.errMessage = 'Wrong password';
+                            userData.errMessage = 'Tài khoản hoặc mật khẩu không đúng!';
                         }
                     }
                 }else{
                     userData.errCode = 2;
-                    userData.errMessage = `User is not found`
+                    userData.errMessage = `Tài khoản hoặc mật khẩu không đúng!`
                 }
             } 
             else{
                 userData.errCode = 1;
-                userData.errMessage = `Your's email is not exist in our system`
+                userData.errMessage = `Tài khoản hoặc mật khẩu không đúng!`;
             }
             resolve(userData)
         }
