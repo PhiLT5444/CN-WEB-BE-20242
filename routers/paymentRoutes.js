@@ -19,8 +19,8 @@ router.post('/cancel', paymentController.cancelPayment);
 router.get('/confirm', paymentController.confirmPayment);
 
 // Route lấy thông tin chi tiết hóa đơn
-// GET /api/payments/invoice/:invoice_id
-router.get('/invoice/:invoice_id', paymentController.getInvoice);
+// GET /api/invoices/:invoice_id
+router.get('/invoices/:invoice_id', paymentController.getInvoice);
 
 // Route lấy danh sách tất cả các giao dịch thanh toán
 // GET /api/payments
@@ -30,5 +30,14 @@ router.get('/', paymentController.getAllPayments);
 // POST /api/payments
 // Body: { order_id, user_id, amount, payment_method }
 router.post('/', paymentController.createPayment);
+
+// Route kiểm tra trạng thái thanh toán của đơn hàng
+// GET /api/payments/status/:order_id
+router.get('/status/:order_id', paymentController.checkPaymentStatus);
+
+// Route xử lý yêu cầu hoàn tiền cho đơn hàng
+// POST /api/payments/refund
+// Body: { order_id, reason }
+router.post('/refund', paymentController.refundPayment);
 
 module.exports = router;

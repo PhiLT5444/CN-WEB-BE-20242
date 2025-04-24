@@ -15,13 +15,21 @@ class PaymentController {
    * @param {Object} req.body - Dữ liệu từ client
    * @param {string} req.body.order_id - ID của đơn hàng cần thanh toán
    * @param {string} req.body.user_id - ID của người dùng thực hiện thanh toán
-   * @param {string} req.body.payment_method - Phương thức thanh toán (ví dụ: 'credit_card', 'paypal')
+   * @param {string} req.body.payment_method - Phương thức thanh toán (ví dụ: 'credit_card', 'paypal', 'momo', 'vnpay')
    * @param {Object} res - Response object
    * @returns {Object} Kết quả thanh toán với thông tin giao dịch và hóa đơn
    */
   async processPayment(req, res) {
     try {
       const { order_id, user_id, payment_method } = req.body;
+      
+      // Kiểm tra dữ liệu đầu vào
+      if (!order_id || !user_id || !payment_method) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required fields for payment processing' 
+        });
+      }
       
       const result = await PaymentService.processPayment(order_id, user_id, payment_method);
       
@@ -44,6 +52,13 @@ class PaymentController {
   async cancelPayment(req, res) {
     try {
       const { order_id } = req.body;
+      
+      if (!order_id) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Order ID is required' 
+        });
+      }
       
       const result = await PaymentService.cancelPayment(order_id);
       
@@ -68,6 +83,13 @@ class PaymentController {
     try {
       const { order_id, transaction_id } = req.query;
       
+      if (!order_id || !transaction_id) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Order ID and transaction ID are required' 
+        });
+      }
+      
       const result = await PaymentService.confirmPayment(order_id, transaction_id);
       
       res.status(200).json(result);
@@ -89,6 +111,13 @@ class PaymentController {
   async getInvoice(req, res) {
     try {
       const { invoice_id } = req.params;
+      
+      if (!invoice_id) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invoice ID is required' 
+        });
+      }
       
       const invoice = await PaymentService.getInvoice(invoice_id);
       
@@ -131,22 +160,86 @@ class PaymentController {
    */
   async createPayment(req, res) {
     try {
-      const { order_id, user_id, amount, payment_method } = req.body;
+      const { order_id, user_id, amount, payment_method, transaction_id, payment_status } = req.body;
 
       if (!order_id || !user_id || !amount || !payment_method) {
-        return res.status(400).json({ success: false, message: 'Missing required fields' });
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required fields: order_id, user_id, amount, and payment_method are required' 
+        });
       }
 
       const payment = await PaymentService.createPayment({ 
         order_id, 
         user_id, 
         amount, 
-        payment_method 
+        payment_method,
+        transaction_id,
+        payment_status
       });
       
       res.status(201).json({ success: true, payment });
     } catch (error) {
       res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
+   * Kiểm tra trạng thái thanh toán của đơn hàng
+   * 
+   * @route GET /api/payments/status/:order_id
+   * @param {Object} req - Request object
+   * @param {Object} req.params - Tham số đường dẫn
+   * @param {string} req.params.order_id - ID của đơn hàng cần kiểm tra
+   * @param {Object} res - Response object
+   * @returns {Object} Thông tin trạng thái thanh toán
+   */
+  async checkPaymentStatus(req, res) {
+    try {
+      const { order_id } = req.params;
+      
+      if (!order_id) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Order ID is required' 
+        });
+      }
+      
+      const statusInfo = await PaymentService.checkPaymentStatus(order_id);
+      
+      res.status(200).json({ success: true, ...statusInfo });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
+   * Xử lý yêu cầu hoàn tiền cho đơn hàng
+   * 
+   * @route POST /api/payments/refund
+   * @param {Object} req - Request object
+   * @param {Object} req.body - Dữ liệu từ client
+   * @param {string} req.body.order_id - ID của đơn hàng cần hoàn tiền
+   * @param {string} req.body.reason - Lý do hoàn tiền
+   * @param {Object} res - Response object
+   * @returns {Object} Kết quả hoàn tiền
+   */
+  async refundPayment(req, res) {
+    try {
+      const { order_id, reason } = req.body;
+      
+      if (!order_id) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Order ID is required' 
+        });
+      }
+      
+      const result = await PaymentService.refundPayment(order_id, reason || 'Customer requested refund');
+      
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 }
