@@ -32,7 +32,7 @@ let handleLogin = async (req, res) => {
         })
     }
     else{
-        return res.status(404).json({
+        return res.status(200).json({
             message: userData.errMessage,
         })
     }

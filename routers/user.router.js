@@ -14,9 +14,9 @@ router.get(
   roleRequired("admin"),
   UserController.displayAllUser
 ); // for admin function
-router.get("/getUserById/:id", authenticate, UserController.getEditInformation); // get user info by id
+router.get("/getProfile", authenticate, UserController.getEditInformation); // get user info by id
 
-router.post("/userUpdate/", authenticate, UserController.updateUser); // update user information
+router.post("/userUpdate", authenticate, UserController.updateUser); // update user information
 //forgot password ???
 
 router.post(
