@@ -3,10 +3,15 @@ const dotenv = require('dotenv');
 const sequelize = require('./config/database');
 const userRoutes = require('./routers/user.router');
 const orderRoutes = require('./routers/order.router');
+const cors = require('cors');
 
 dotenv.config();
 const app = express();
 app.use(express.json());
+app.use(cors({
+  origin: 'http://localhost:3000', 
+
+}));
 
 //API user
 app.use('/api/users', userRoutes);

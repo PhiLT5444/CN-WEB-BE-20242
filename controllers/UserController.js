@@ -54,8 +54,8 @@ let displayAllUser = async(req, res) => {
 }
 
 let getEditInformation  = async(req, res) => {
-    let userId = req.params.id;
-    console.log(userId)
+    let userId = req.user.id;
+    //console.log(userId)
 
     // Ham danh gia obj tra ve {} hay la cac du lieu
     const isEmptyObject = (obj) => Object.keys(obj).length === 0;
@@ -121,9 +121,9 @@ let changePassword = async(req, res)=>{
     //let id = req.params.id;
     id = req.user.id;
     const result = await userService.changeYourPassword(id, oldPW, newPW, confirmPW);
-    if(result.errCode != 0){
-        return res.status(400).json(result);
-    }
+    // if(result.errCode != 0){
+    //     return res.status(400).json(result);
+    // }
     return res.status(200).json(result);
 }
 
