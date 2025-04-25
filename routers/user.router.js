@@ -1,6 +1,7 @@
 const express = require("express");
 const UserController = require("../controllers/UserController");
 const { authenticate, roleRequired } = require("../middleware/auth");
+const { ro } = require("@faker-js/faker");
 const router = express.Router();
 
 router.post("/login", UserController.handleLogin); // login
@@ -25,11 +26,23 @@ router.post(
   roleRequired("admin"),
   UserController.getPunishmentOnUser
 ); //ban user
+
+router.post(
+  "/unpunish/:id",
+  authenticate,
+  roleRequired("admin"),
+  UserController.unBanUser
+);
+
 router.post(
   "/userDelete/:id",
   authenticate,
   roleRequired("admin"),
   UserController.deleteUser
 ); // delete user
+
+//forgot pasword 
+router.post("/forgot-password", UserController.forgotPassword);
+router.post("/reset-password", UserController.resetPassword);
 
 module.exports = router;

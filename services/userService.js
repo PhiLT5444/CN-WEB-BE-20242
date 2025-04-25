@@ -2,6 +2,10 @@ const { where } = require('sequelize');
 const db = require('../models/index')
 const bcrypt = require('bcryptjs')
 const salt = bcrypt.genSaltSync(10);
+const crypto = require('crypto')
+const sendMail = require('../utils/sendMail');
+const { resolve } = require('path');
+const { rejects } = require('assert');
 
 let handleUserLogin = (email, password) => {
     return new Promise(async(resolve, reject) =>{
@@ -19,7 +23,7 @@ let handleUserLogin = (email, password) => {
                     //compare password 
                     if(user.status == 'banned'){
                         userData.errCode = 4;
-                        userData.errMessage = 'You are banned!';
+                        userData.errMessage = 'Bạn đang bị áp dụng lệnh cấm';
                     }
                     else{
                         let check = await bcrypt.compare(password, user.password);
@@ -325,6 +329,32 @@ let banUser = (userId) =>{
     })
 }
 
+let unBanUser = (userId) =>{
+    return new Promise(async(resolve, reject)=>{
+        try{
+            let user = await db.users.findOne({
+                where: {id : userId}
+            })
+            if(user){
+                user.status = 'active';
+                await user.save();
+                return resolve({
+                    errCode: 0,
+                    errMessage: 'Done!',
+                })
+            }
+            else{
+                return resolve({
+                    errCode: 1,
+                    errMessage: 'User not found!',
+                })
+            }
+        }catch(e){
+            reject(e);
+        }
+    })
+}
+
 let changeYourPassword = (userId, oldPW, newPW, confirmPW) =>{
     return new Promise(async(resolve, reject)=>{
         try{
@@ -336,14 +366,14 @@ let changeYourPassword = (userId, oldPW, newPW, confirmPW) =>{
                 if(!isMatch){
                     resolve({
                         errCode : 2,
-                        errMessage: 'Wrong password'
+                        errMessage: 'Sai mật khẩu'
                     })
                 }
                 else{
                     if(newPW !== confirmPW){
                        resolve({
                             errCode : 3,
-                            errMessage: 'confirmPW is different from newPW'
+                            errMessage: 'Mật khẩu không khớp!'
                        })
                     }
                     else{
@@ -370,6 +400,72 @@ let changeYourPassword = (userId, oldPW, newPW, confirmPW) =>{
         }
     })
 }
+
+//forgot password 
+let forgotPassword = (email) =>{
+    return new Promise(async(resolve, reject) => {
+        try{
+            const user = await db.users.findOne({
+                where: {email: email}
+            })
+            if(!user){
+                resolve({
+                    errCode: 1,
+                    errMessage: "Email không tồn tại"
+                })
+            }
+            else{
+                const token = crypto.randomBytes(32).toString("hex");
+                user.resetToken = token;
+                user.tokenExpire = Date.now() + 1000 * 60 * 15;
+                await user.save();
+
+                const resetLink = `http://localhost:3000/reset-password?token=${token}`
+                await sendMail(email, "Reset mật khẩu", `Link đặt lại mật khẩu: ${resetLink}`);
+
+                resolve({
+                    errCode: 0,
+                    errMessage: "Vui lòng kiểm tra email để đặt lại mật khẩu"
+                })
+            }
+        }
+        catch(err){
+            reject(err);
+        }
+    })
+}
+
+let resetPassword = (token, newPassword) => {
+    return new Promise(async(resolve, reject) => {
+        try{
+            const user = await db.users.findOne({
+                where:{
+                    resetToken: token,
+                    tokenExpire: { [db.Sequelize.Op.gt]: new Date() }
+                }
+            });
+
+            if(!user){
+                resolve({
+                    errCode: 1,
+                    errMessage: "Token không hợp lệ hoặc đã hết hạn"
+                })
+            }
+            user.password = await bcrypt.hash(newPassword, salt);
+            user.resetToken = null;
+            user.tokenExpire = null;
+            await user.save();
+            
+            resolve({
+                errCode: 0,
+                errMessage: "Đặt lại mật khẩu thành công "
+            })
+        }
+        catch(e){
+            reject(e);
+        }
+    })
+}
 module.exports ={
     handleUserLogin : handleUserLogin,
     createNewUser : createNewUser,
@@ -379,4 +475,7 @@ module.exports ={
     deleteUserById: deleteUserById,
     banUser: banUser,
     changeYourPassword: changeYourPassword,
+    unBanUser: unBanUser,
+    forgotPassword: forgotPassword,
+    resetPassword: resetPassword
 }

@@ -8,10 +8,16 @@ const userRoutes = require("./routers/user.router");
 const orderRoutes = require("./routers/order.router");
 //Import route thanh toán
 const paymentRoutes = require("./routers/paymentRoutes");
+const cors = require("cors");
 
 dotenv.config();
 const app = express();
 app.use(express.json());
+
+app.use(cors({
+  origin: 'http://localhost:3000', 
+
+}));
 
 const swaggerOptions = {
   definition: {

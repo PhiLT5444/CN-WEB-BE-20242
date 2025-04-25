@@ -70,6 +70,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       unique: true,
     },
+    resetToken: {
+      type: DataTypes.STRING
+    },
+    tokenExpire: {
+      type: DataTypes.DATE,
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
