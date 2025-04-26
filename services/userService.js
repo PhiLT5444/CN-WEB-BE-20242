@@ -1,5 +1,10 @@
 const { where } = require('sequelize');
-const db = require('../models/index')
+const sequelize = require('../config/database');
+const initModels = require('../models_gen/init-models');
+const models = initModels(sequelize);
+const {users} = models;
+const {Op} = require('sequelize');
+// const db = require('../models/index')
 const bcrypt = require('bcryptjs')
 const salt = bcrypt.genSaltSync(10);
 const crypto = require('crypto')
@@ -13,7 +18,7 @@ let handleUserLogin = (email, password) => {
             let userData = {};
             let isExist = await checkUserEmail(email);
             if(isExist){
-                let user = await db.users.findOne({
+                let user = await users.findOne({
                     //attributes : ['email', 'role', 'password', 'id'],
                     where: {
                         email : email,
@@ -72,7 +77,7 @@ let handleUserLogin = (email, password) => {
 let checkUserEmail = (userEmail) => {
     return new Promise (async(resolve, reject)=>{
         try{
-            let user = await db.users.findOne({
+            let user = await users.findOne({
                 where : {email : userEmail},
                 // attributes: {
                 //     include: ['email', 'role'],
@@ -96,13 +101,13 @@ let checkUserEmail = (userEmail) => {
 let createNewUser = async(data) => {
     return new Promise(async(resolve, reject) => {
         try{
-            let user1 = await db.users.findOne({
+            let user1 = await users.findOne({
                 where: {email: data.email}
             });
-            let user2 = await db.users.findOne({
+            let user2 = await users.findOne({
                 where: {username: data.username}
             })
-            let user3 = await db.users.findOne({
+            let user3 = await users.findOne({
                 where : {phone_number: data.phone_number}
             })
             if(user1){
@@ -127,7 +132,7 @@ let createNewUser = async(data) => {
                     }
                     else{   
                         let hashPasswordFromBcrypt = await hashUserPassword(data.password);
-                        await db.users.create({
+                        await users.create({
                         username : data.username,
                         email: data.email,
                         password: hashPasswordFromBcrypt,
@@ -165,17 +170,17 @@ let hashUserPassword = (password) =>{
 let getAllUser = () => {
     return new Promise(async(resolve, reject) =>{
         try{
-            const activeUser = await db.users.count({
+            const activeUser = await models.users.count({
                 where: {
                     status : 'active',
                 }
             })
-            const bannedUser = await db.users.count({
+            const bannedUser = await models.users.count({
                 where: {
                     status : 'banned',
                 }
             })
-            let users = await db.users.findAll({
+            let users = await models.users.findAll({
                 raw: true,
                 attributes: {exclude: ['password']},
             });
@@ -203,7 +208,7 @@ let getAllUser = () => {
 let getUserInfoById = (userId) =>{
     return new Promise(async(resolve, reject) => {
         try{
-            let user = await db.users.findOne({
+            let user = await users.findOne({
                 where : {id : userId},
                 raw : true,
                 attributes: {exclude: ['password']},
@@ -222,20 +227,20 @@ let getUserInfoById = (userId) =>{
 let updateUserData = (userId, data) => {
     return new Promise(async(resolve, reject) => {
         try{
-            let user = await db.users.findOne({
+            let user = await users.findOne({
                 where: {id: userId},
             })
             if(user){
-                let user1 = await db.users.findOne({
+                let user1 = await users.findOne({
                     where: {
                         username: data.username,
-                        id: { [db.Sequelize.Op.ne]: userId },
+                        id: { [Op.ne]: userId },
                     }
                 })
-                let user2 = await db.users.findOne({
+                let user2 = await users.findOne({
                     where: {
                         phone_number: data.phone_number,
-                        id: { [db.Sequelize.Op.ne]: userId },
+                        id: { [Op.ne]: userId },
                     }
                 })
                 if(user1){
@@ -281,7 +286,7 @@ let updateUserData = (userId, data) => {
 let deleteUserById = (userId)=>{
     return new Promise(async(resolve, reject) => {
         try{
-            let user = await db.users.findOne({
+            let user = await users.findOne({
                 where: {id: userId}
             })
             if(user){
@@ -306,7 +311,7 @@ let deleteUserById = (userId)=>{
 let banUser = (userId) =>{
     return new Promise(async(resolve, reject)=>{
         try{
-            let user = await db.users.findOne({
+            let user = await users.findOne({
                 where: {id : userId}
             })
             if(user){
@@ -332,7 +337,7 @@ let banUser = (userId) =>{
 let unBanUser = (userId) =>{
     return new Promise(async(resolve, reject)=>{
         try{
-            let user = await db.users.findOne({
+            let user = await users.findOne({
                 where: {id : userId}
             })
             if(user){
@@ -358,7 +363,7 @@ let unBanUser = (userId) =>{
 let changeYourPassword = (userId, oldPW, newPW, confirmPW) =>{
     return new Promise(async(resolve, reject)=>{
         try{
-            const user = await db.users.findOne({
+            const user = await users.findOne({
                 where: {id : userId}
             });
             if(user){
@@ -405,7 +410,7 @@ let changeYourPassword = (userId, oldPW, newPW, confirmPW) =>{
 let forgotPassword = (email) =>{
     return new Promise(async(resolve, reject) => {
         try{
-            const user = await db.users.findOne({
+            const user = await users.findOne({
                 where: {email: email}
             })
             if(!user){
@@ -438,10 +443,10 @@ let forgotPassword = (email) =>{
 let resetPassword = (token, newPassword) => {
     return new Promise(async(resolve, reject) => {
         try{
-            const user = await db.users.findOne({
+            const user = await users.findOne({
                 where:{
                     resetToken: token,
-                    tokenExpire: { [db.Sequelize.Op.gt]: new Date() }
+                    tokenExpire: { [Op.gt]: new Date() }
                 }
             });
 

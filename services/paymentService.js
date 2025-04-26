@@ -1,7 +1,12 @@
 'use strict';
 
-const db = require('../models');
-const { users, orders, invoices, payments } = db;
+// const db = require('../models');
+// const { users, orders, invoices, payments } = db;
+
+const sequelize = require('../config/database');
+const initModels = require('../models_gen/init-models');
+const models = initModels(sequelize);
+const { orders, users, payments } = models;
 
 /**
  * Service xử lý các chức năng liên quan đến thanh toán

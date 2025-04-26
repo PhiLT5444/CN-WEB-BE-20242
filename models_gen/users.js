@@ -53,6 +53,16 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       unique: true,
     },
+    resetToken: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      field: 'resetToken' 
+    },
+    tokenExpire: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'tokenExpire'
+    },
   }, {
     sequelize,
     tableName: 'users',
