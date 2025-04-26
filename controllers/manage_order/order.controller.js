@@ -1,29 +1,23 @@
-const Order = require("../../models/order.model");
-const OrderDetail = require("../../models/order_detail.model");
 
-Order.hasMany(OrderDetail, {
-    foreignKey: "order_id",
-    as: "order_details",
-});
-OrderDetail.belongsTo(Order, {
-    foreignKey: "order_id",
-    as: "order",
-});
+const sequelize = require('../../config/database');
+const initModels = require('../../models_gen/init-models');
+const models = initModels(sequelize);
+const { orders, orderdetails } = models;
 
 exports.getListOrders = async (req, res) => {
     try {
-        const orders = await Order.findAll({
+        const order_list = await orders.findAll({
             where: { user_id: 3 },
             include: [
                 {
-                    model: OrderDetail,
-                    as: "order_details",
+                    model: orderdetails,
+                    as: "orderdetails",
                 },
             ],
             order: [["created_at", "DESC"]],
         });
 
-        res.status(200).json(orders);
+        res.status(200).json(order_list);
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -36,12 +30,12 @@ exports.getOrderById = async (req, res) => {
     try {
         const order_id = req.params.order_id;
 
-        const order = await Order.findOne({
+        const order = await orders.findOne({
             where: { id: order_id },
             include: [
                 {
-                    model: OrderDetail,
-                    as: "order_details",
+                    model: orderdetails,
+                    as: "orderdetails",
                 },
             ],
         });
@@ -60,7 +54,7 @@ exports.getOrderById = async (req, res) => {
 exports.cancelOrder = async (req, res) => {
     const { orderId } = req.params;
     try {
-        const order = await Order.findByPk(orderId);
+        const order = await orders.findByPk(orderId);
         if (!order)
             return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
@@ -75,8 +69,8 @@ exports.cancelOrder = async (req, res) => {
 
 exports.getPendingDeliveryOrders = async (req, res) => {
     try {
-        const orders = await Order.findAll({ where: { status: "processing" } });
-        res.json(orders);
+        const orders_process = await orders.findAll({ where: { status: "processing" } });
+        res.json(orders_process);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -86,7 +80,7 @@ exports.assignShipper = async (req, res) => {
     const { orderId } = req.params;
     const { shipper_id } = req.body;
     try {
-        const order = await Order.findByPk(orderId);
+        const order = await orders.findByPk(orderId);
         if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
         order.shipper_id = shipper_id;
@@ -102,10 +96,10 @@ exports.assignShipper = async (req, res) => {
 exports.getOrdersByShipper = async (req, res) => {
     const { shipper_id } = req.query;
     try {
-        const orders = await Order.findAll({
+        const orders_by_shipper = await orders.findAll({
             where: { shipper_id, status: "processing" },
         });
-        res.json(orders);
+        res.json(orders_by_shipper);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -115,7 +109,7 @@ exports.updateOrderStatus = async (req, res) => {
     const { orderId } = req.params;
     const { status } = req.body;
     try {
-        const order = await Order.findByPk(orderId);
+        const order = await orders.findByPk(orderId);
         if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
         order.status = status;
@@ -130,7 +124,7 @@ exports.updateOrderStatus = async (req, res) => {
 exports.markOrderAsFailed = async (req, res) => {
     const { orderId } = req.params;
     try {
-        const order = await Order.findByPk(orderId);
+        const order = await orders.findByPk(orderId);
         if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
         order.status = "failed";
