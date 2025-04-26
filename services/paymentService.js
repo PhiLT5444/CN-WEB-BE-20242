@@ -233,7 +233,7 @@ class PaymentService {
         transaction_id: transaction_id || `TRANS_${Date.now()}`,
         amount,
         payment_method,
-        status: status || 'pending',
+        payment_status: status || 'pending',
       });
       
       return payment;
