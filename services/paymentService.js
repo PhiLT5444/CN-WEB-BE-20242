@@ -1,8 +1,12 @@
 'use strict';
 
-const db = require('../models_gen');
-const { users, orders, payments } = db;
-
+// const db = require('../models_gen');
+// const { users, orders, payments } = db;
+const sequelize = require('../config/database');
+const initModels = require('../models_gen/init-models');
+const models = initModels(sequelize);
+const {users, orders, payments} = models;
+const {Op} = require('sequelize');
 // Vì invoices.js chưa được chuyển sang models_gen nên cần xác định
 let invoices;
 try {
