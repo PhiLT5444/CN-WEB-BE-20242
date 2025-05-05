@@ -102,7 +102,7 @@ let deleteUser = async(req, res)=>{
 let getPunishmentOnUser = async(req, res)=>{
     let id = req.params.id;
     const result = await userService.banUser(id);
-    if(result.errCode == 1){
+    if(result.errCode != 0){
         return res.status(400).json(result);
     }
     return res.status(200).json(result);

@@ -49,7 +49,7 @@ sequelize
   .then(() => console.log("✅ CSDL đã đồng bộ!"))
   .catch((err) => console.error("❌ Lỗi đồng bộ CSDL:", err));
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () =>
   console.log(`🚀 Server chạy tại http://localhost:${PORT}`)
 );

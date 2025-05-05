@@ -113,21 +113,21 @@ let createNewUser = async(data) => {
             if(user1){
                 resolve({
                     errCode: 3,
-                    errMessage: 'This email was used!',
+                    errMessage: 'Email này đã được sử dụng',
                 });
             }
             else{
                 if(user2){
                     resolve({
                         errCode: 2,
-                        errMessage: 'This username was used!',
+                        errMessage: 'Tên tài khoản này đã được sử dụng',
                     });
                 }
                 else{
                     if(user3){
                         resolve({
                             errCode: 1,
-                            errMessage: 'This phone number was used!', 
+                            errMessage: 'Số điện thoại này đã được sử dụng', 
                         });
                     }
                     else{   
@@ -144,7 +144,7 @@ let createNewUser = async(data) => {
                         })
                         resolve({
                             errCode: 0,
-                            errMessage: 'ok create a new user succeed!',
+                            errMessage: 'Tạo tài khoản thành công',
                         });
                     }
                 }
@@ -246,14 +246,14 @@ let updateUserData = (userId, data) => {
                 if(user1){
                     resolve({
                         errCode: 2,
-                        errMessage: "This username was used!"
+                        errMessage: "Tên người dùng đã được sử dụng"
                     });
                 }
                 else{
                     if(user2){
                         resolve({
                             errCode: 3,
-                            errMessage: "This phone number was used!"
+                            errMessage: "Số điện thoại này đã được sử dụng"
                         });
                     }
                     else{
@@ -266,7 +266,7 @@ let updateUserData = (userId, data) => {
                         await user.save();
                         resolve({
                             errCode : 0,
-                            errMessage: 'Updated successfully!'
+                            errMessage: 'Cập nhật thành công'
                         });
                     }
                 }
@@ -315,6 +315,12 @@ let banUser = (userId) =>{
                 where: {id : userId}
             })
             if(user){
+                if(user.status === 'banned'){
+                    return resolve({
+                        errCode: 2,
+                        errMessage: 'The user was banned'
+                    })
+                }
                 user.status = 'banned';
                 await user.save();
                 return resolve({
