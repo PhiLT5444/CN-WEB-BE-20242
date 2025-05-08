@@ -294,4 +294,28 @@ router.delete("/categories/:id", productController.deleteCategory);
  */
 router.get("/stock/check", productController.checkStock);
 
+/**
+ * @swagger
+ * /api/products/category/{category_id}:
+ *   get:
+ *     tags:
+ *       - Product
+ *     summary: Lấy danh sách sản phẩm theo danh mục
+ *     parameters:
+ *       - in: path
+ *         name: category_id
+ *         required: true
+ *         description: ID của danh mục
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Thành công
+ *       404:
+ *         description: Không có sản phẩm nào trong danh mục này
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.get("/category/:category_id", productController.getProductsByCategory);
+
 module.exports = router;

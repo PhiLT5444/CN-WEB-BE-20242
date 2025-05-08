@@ -118,3 +118,21 @@ exports.addProduct = async (req, res) => {
     res.status(500).json({ error: "Lỗi thêm sản phẩm", details: err.message });
   }
 };
+
+exports.getProductsByCategory = async (req, res) => {
+  const { category_id } = req.params; // Lấy category_id từ URL
+  try {
+    const products = await Product.findAll({
+      where: { category_id }, // Lọc theo category_id
+    });
+
+    if (products.length === 0) {
+      return res.status(404).json({ message: "Không có sản phẩm nào trong danh mục này" });
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Lỗi khi lấy sản phẩm theo danh mục:", error);
+    res.status(500).json({ error: "Đã xảy ra lỗi khi lấy sản phẩm theo danh mục" });
+  }
+};
