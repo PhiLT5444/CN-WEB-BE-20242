@@ -57,17 +57,6 @@ module.exports = {
         defaultValue: Sequelize.fn('NOW')
       }
     });
-
-    // Thêm index nếu cần
-    await queryInterface.addIndex('orderdetails', ['order_id'], {
-      name: 'order_id',
-      using: 'BTREE'
-    });
-
-    await queryInterface.addIndex('orderdetails', ['product_id'], {
-      name: 'product_id',
-      using: 'BTREE'
-    });
   },
 
   down: async (queryInterface, Sequelize) => {

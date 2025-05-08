@@ -35,12 +35,6 @@ module.exports = {
         defaultValue: false
       }
     });
-
-    // Tạo index cho product_id nếu cần (ngoài PRIMARY)
-    await queryInterface.addIndex('carts', ['product_id'], {
-      name: 'product_id',
-      using: 'BTREE'
-    });
   },
 
   down: async (queryInterface, Sequelize) => {

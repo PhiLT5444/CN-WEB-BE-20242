@@ -74,18 +74,6 @@ module.exports = {
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
-
-    // Index for username
-    await queryInterface.addIndex('users', ['username'], {
-      unique: true,
-      name: 'username'
-    });
-
-    // Index for email
-    await queryInterface.addIndex('users', ['email'], {
-      unique: true,
-      name: 'email'
-    });
   },
 
   down: async (queryInterface, Sequelize) => {

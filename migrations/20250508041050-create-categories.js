@@ -23,13 +23,6 @@ module.exports = {
         defaultValue: false
       }
     });
-
-    // Tạo index nếu cần
-    await queryInterface.addIndex('categories', ['id'], {
-      name: 'PRIMARY',
-      unique: true,
-      using: 'BTREE'
-    });
   },
 
   down: async (queryInterface, Sequelize) => {

@@ -63,21 +63,6 @@ module.exports = {
         defaultValue: Sequelize.fn('NOW')
       }
     });
-
-    // Indexes
-    await queryInterface.addIndex('payments', ['order_id'], {
-      name: 'order_id',
-      using: 'BTREE'
-    });
-    await queryInterface.addIndex('payments', ['user_id'], {
-      name: 'user_id',
-      using: 'BTREE'
-    });
-    await queryInterface.addIndex('payments', ['transaction_id'], {
-      name: 'transaction_id',
-      unique: true,
-      using: 'BTREE'
-    });
   },
 
   down: async (queryInterface, Sequelize) => {

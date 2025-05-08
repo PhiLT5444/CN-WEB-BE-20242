@@ -61,16 +61,6 @@ module.exports = {
         defaultValue: false
       }
     });
-
-    // Indexes
-    await queryInterface.addIndex('products', ['branch_id'], {
-      name: 'branch_id',
-      using: 'BTREE'
-    });
-    await queryInterface.addIndex('products', ['category_id'], {
-      name: 'category_id',
-      using: 'BTREE'
-    });
   },
 
   down: async (queryInterface, Sequelize) => {

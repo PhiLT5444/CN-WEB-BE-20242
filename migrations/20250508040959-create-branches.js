@@ -23,13 +23,6 @@ module.exports = {
         defaultValue: false
       }
     });
-
-    // Thêm index PRIMARY nếu cần thiết (Sequelize đã tự tạo khi primaryKey=true)
-    await queryInterface.addIndex('branches', ['id'], {
-      name: 'PRIMARY',
-      unique: true,
-      using: 'BTREE'
-    });
   },
 
   down: async (queryInterface, Sequelize) => {

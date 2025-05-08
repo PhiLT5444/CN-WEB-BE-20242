@@ -48,12 +48,6 @@ module.exports = {
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
-
-    // Index for order_id
-    await queryInterface.addIndex('shipping', ['order_id'], {
-      name: 'order_id',
-      using: 'BTREE'
-    });
   },
 
   down: async (queryInterface, Sequelize) => {
