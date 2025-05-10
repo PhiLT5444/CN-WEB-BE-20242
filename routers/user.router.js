@@ -5,7 +5,7 @@ const { ro } = require("@faker-js/faker");
 const router = express.Router();
 
 router.post("/login", UserController.handleLogin); // login
-router.post("/createUser", UserController.createUser); // to create your account and create others account by admin
+router.post("/createUser", UserController.createUser); // to register
 // log out : delete token will be implemented in client-side (front-end)
 router.post("/changePassword/", authenticate, UserController.changePassword); //update your password
 

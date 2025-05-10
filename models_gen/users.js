@@ -22,7 +22,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false
     },
     role: {
-      type: DataTypes.ENUM('admin','customer'),
+      type: DataTypes.ENUM('admin','customer', 'shipper'),
       allowNull: true,
       defaultValue: "customer"
     },
@@ -51,7 +51,6 @@ module.exports = function(sequelize, DataTypes) {
     phone_number: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     resetToken: {
       type: DataTypes.STRING,

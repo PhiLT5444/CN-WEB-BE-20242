@@ -107,9 +107,9 @@ let createNewUser = async(data) => {
             let user2 = await users.findOne({
                 where: {username: data.username}
             })
-            let user3 = await users.findOne({
-                where : {phone_number: data.phone_number}
-            })
+            // let user3 = await users.findOne({
+            //     where : {phone_number: data.phone_number}
+            // })
             if(user1){
                 resolve({
                     errCode: 3,
@@ -124,19 +124,19 @@ let createNewUser = async(data) => {
                     });
                 }
                 else{
-                    if(user3){
-                        resolve({
-                            errCode: 1,
-                            errMessage: 'Số điện thoại này đã được sử dụng', 
-                        });
-                    }
-                    else{   
+                    // if(user3){
+                    //     resolve({
+                    //         errCode: 1,
+                    //         errMessage: 'Số điện thoại này đã được sử dụng', 
+                    //     });
+                    // }
+                    //else{   
                         let hashPasswordFromBcrypt = await hashUserPassword(data.password);
                         await users.create({
                         username : data.username,
                         email: data.email,
                         password: hashPasswordFromBcrypt,
-                        //role: data.role,
+                        role: data.role,
                         full_name: data.full_name,
                         gender: data.gender,
                         address: data.address,
@@ -146,7 +146,7 @@ let createNewUser = async(data) => {
                             errCode: 0,
                             errMessage: 'Tạo tài khoản thành công',
                         });
-                    }
+                    //}
                 }
             }
         }catch(e){
@@ -237,12 +237,12 @@ let updateUserData = (userId, data) => {
                         id: { [Op.ne]: userId },
                     }
                 })
-                let user2 = await users.findOne({
-                    where: {
-                        phone_number: data.phone_number,
-                        id: { [Op.ne]: userId },
-                    }
-                })
+                // let user2 = await users.findOne({
+                //     where: {
+                //         phone_number: data.phone_number,
+                //         id: { [Op.ne]: userId },
+                //     }
+                // })
                 if(user1){
                     resolve({
                         errCode: 2,
@@ -250,14 +250,14 @@ let updateUserData = (userId, data) => {
                     });
                 }
                 else{
-                    if(user2){
-                        resolve({
-                            errCode: 3,
-                            errMessage: "Số điện thoại này đã được sử dụng"
-                        });
-                    }
-                    else{
-                        console.log(user)
+                    // if(user2){
+                    //     resolve({
+                    //         errCode: 3,
+                    //         errMessage: "Số điện thoại này đã được sử dụng"
+                    //     });
+                    // }
+                    //else{
+                        //console.log(user)
                         user.username = data.username || user.username;
                         user.full_name = data.full_name || user.full_name;
                         user.gender = data.gender || user.gender;
@@ -268,7 +268,7 @@ let updateUserData = (userId, data) => {
                             errCode : 0,
                             errMessage: 'Cập nhật thành công'
                         });
-                    }
+                    //}
                 }
             }
             else{
