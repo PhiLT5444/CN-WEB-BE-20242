@@ -2,22 +2,22 @@ const express = require('express');
 const router = express.Router();
 const cartController = require('../controllers/manage_cart/cart.controller');
 
-// Lấy danh sách giỏ hàng
-router.get('/', cartController.getListCarts);
+// GET giỏ hàng
+router.get("/", cartController.getCart);
 
-// Thêm sản phẩm vào giỏ hàng
-router.post('/', cartController.addProductToCart);
+// POST thêm sản phẩm vào giỏ
+router.post("/add", cartController.addToCart);
 
-// Cập nhật số lượng sản phẩm
-router.put('/:product_id', cartController.updateQuantity);
+// PUT cập nhật số lượng
+router.put("/update", cartController.updateCartItem);
 
-// Gán shipper cho đơn hàng
-router.delete('/:product_id', cartController.deleteProductFromCart);
+// DELETE sản phẩm khỏi giỏ
+router.delete("/remove/:product_id", cartController.deleteCartItem);
 
-// Đặt hàng
-router.post('/orders', cartController.order);
+// POST đặt hàng
+router.post("/order", cartController.createOrder);
 
-// Xem lịch sử đặt hàng
-router.put('/orders/history', cartController.getHistoryOrder);
+// GET lịch sử đơn hàng
+router.get("/history", cartController.getOrderHistory);
 
 module.exports = router;
