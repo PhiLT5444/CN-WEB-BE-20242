@@ -127,12 +127,34 @@ exports.getProductsByCategory = async (req, res) => {
     });
 
     if (products.length === 0) {
-      return res.status(404).json({ message: "Không có sản phẩm nào trong danh mục này" });
+      return res
+        .status(404)
+        .json({ message: "Không có sản phẩm nào trong danh mục này" });
     }
 
     res.status(200).json(products);
   } catch (error) {
     console.error("Lỗi khi lấy sản phẩm theo danh mục:", error);
-    res.status(500).json({ error: "Đã xảy ra lỗi khi lấy sản phẩm theo danh mục" });
+    res
+      .status(500)
+      .json({ error: "Đã xảy ra lỗi khi lấy sản phẩm theo danh mục" });
+  }
+};
+
+exports.getAllCategories = async (req, res) => {
+  try {
+    const categories = await Category.findAll({
+      where: { is_deleted: false }, // Lọc các danh mục chưa bị xóa
+      attributes: ["id", "name", "description"], // Chỉ lấy các trường cần thiết
+    });
+
+    if (categories.length === 0) {
+      return res.status(404).json({ message: "Không có danh mục nào" });
+    }
+
+    res.status(200).json(categories);
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách danh mục:", error);
+    res.status(500).json({ error: "Đã xảy ra lỗi khi lấy danh sách danh mục" });
   }
 };

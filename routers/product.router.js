@@ -318,4 +318,21 @@ router.get("/stock/check", productController.checkStock);
  */
 router.get("/category/:category_id", productController.getProductsByCategory);
 
+/**
+ * @swagger
+ * /api/categories:
+ *   get:
+ *     tags:
+ *       - Category
+ *     summary: Lấy danh sách các danh mục
+ *     responses:
+ *       200:
+ *         description: Thành công
+ *       404:
+ *         description: Không có danh mục nào
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.get("/categories", productController.getAllCategories);
+
 module.exports = router;
