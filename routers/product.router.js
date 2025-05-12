@@ -61,6 +61,7 @@ const {
  *       500:
  *         description: Lỗi thêm sản phẩm
  */
+
 router.post("/", validateAddProduct, productController.addProduct);
 /**
  * @swagger
@@ -112,6 +113,8 @@ router.get("/search", productController.searchProducts);
  *       500:
  *         description: Lỗi lấy sản phẩm
  */
+router.get("/getAll", productController.getAllProduct);
+router.get("/categories", productController.getAllCategories);
 router.get("/:id", productController.getProductById);
 
 /**

@@ -1,7 +1,7 @@
 const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize({
-  database: 'commercial_store',
+  database: 'product_store',
   username: process.env.MYSQL_USERNAME || 'root',
   password: null,
   host: process.env.MYSQL_HOST || '127.0.0.1',

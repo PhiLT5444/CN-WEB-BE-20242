@@ -2,7 +2,7 @@
   "development": {
     "username": "root",
     "password": null,
-    "database": "commercial_store",
+    "database": "product_store",
     "host": "127.0.0.1",
     "dialect": "mysql"
   }
