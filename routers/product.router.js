@@ -9,6 +9,46 @@ const {
 
 /**
  * @swagger
+ * /api/products/categories:
+ *   get:
+ *     tags:
+ *       - Category
+ *     summary: Lấy danh sách tất cả các danh mục sản phẩm
+ *     description: Trả về danh sách tất cả các danh mục hiện có trong hệ thống.
+ *     responses:
+ *       200:
+ *         description: Thành công. Danh sách các danh mục.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   name:
+ *                     type: string
+ *                     example: "Điện thoại"
+ *                   description:
+ *                     type: string
+ *                     example: "Danh mục các sản phẩm điện thoại"
+ *       500:
+ *         description: Lỗi lấy danh sách danh mục
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Lỗi lấy danh sách danh mục"
+ */
+router.get("/categories", productController.getAllCategories);
+
+/**
+ * @swagger
  * /api/products:
  *   post:
  *     tags:
@@ -320,19 +360,77 @@ router.get("/category/:category_id", productController.getProductsByCategory);
 
 /**
  * @swagger
- * /api/categories:
+ * /api/products/{id}/category:
  *   get:
  *     tags:
- *       - Category
- *     summary: Lấy danh sách các danh mục
+ *       - Product
+ *     summary: Lấy danh mục của sản phẩm theo ID sản phẩm
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID của sản phẩm
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
  *         description: Thành công
  *       404:
- *         description: Không có danh mục nào
+ *         description: Không tìm thấy sản phẩm hoặc danh mục
  *       500:
  *         description: Lỗi máy chủ
  */
-router.get("/categories", productController.getAllCategories);
+router.get("/:id/category", productController.getCategoryOfProduct);
+
+/**
+ * @swagger
+ * /api/products/{product_id}/add-to-cart/{user_id}:
+ *   post:
+ *     tags:
+ *       - Cart
+ *     summary: Thêm sản phẩm vào giỏ hàng theo ID sản phẩm và ID user
+ *     parameters:
+ *       - in: path
+ *         name: product_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID sản phẩm cần thêm vào giỏ hàng
+ *       - in: path
+ *         name: user_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID người dùng
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               quantity:
+ *                 type: integer
+ *                 description: Số lượng muốn thêm (bắt buộc)
+ *                 example: 2
+ *     responses:
+ *       200:
+ *         description: Đã thêm sản phẩm vào giỏ hàng
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                   example: Product added to cart successfully
+ *       400:
+ *         description: Thiếu tham số
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.post("/:product_id/add-to-cart/:user_id", productController.addToCart);
 
 module.exports = router;

@@ -8,6 +8,59 @@ const Category = require("../models_gen/categories")(
   sequelize,
   sequelize.DataTypes
 );
+const Cart = require("../models_gen/carts")(sequelize, sequelize.DataTypes);
+
+exports.addToCart = async (req, res) => {
+  const { product_id, user_id } = req.params;
+  const { quantity } = req.body;
+
+  if (!user_id || !product_id || !quantity) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing required fields: user_id, product_id, quantity",
+    });
+  }
+
+  try {
+    const existingCart = await Cart.findOne({
+      where: {
+        user_id,
+        product_id,
+      },
+    });
+
+    if (existingCart) {
+      if (existingCart.is_deleted) {
+        await existingCart.update({
+          quantity,
+          is_deleted: false,
+        });
+      } else {
+        await existingCart.update({
+          quantity: existingCart.quantity + quantity,
+        });
+      }
+    } else {
+      await Cart.create({
+        user_id,
+        product_id,
+        quantity,
+        is_deleted: false,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Product added to cart successfully",
+    });
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 exports.searchProducts = async (req, res) => {
   const { keyword, category } = req.query;
@@ -141,20 +194,40 @@ exports.getProductsByCategory = async (req, res) => {
   }
 };
 
+exports.getCategoryOfProduct = async (req, res) => {
+  try {
+    const product = await Product.findByPk(req.params.id);
+    if (!product)
+      return res.status(404).json({ error: "Không tìm thấy sản phẩm" });
+
+    const category = await Category.findByPk(product.category_id);
+    if (!category)
+      return res.status(404).json({ error: "Không tìm thấy danh mục" });
+
+    res.status(200).json(category);
+  } catch (error) {
+    res.status(500).json({ error: "Lỗi lấy danh mục sản phẩm" });
+  }
+};
+
 exports.getAllCategories = async (req, res) => {
   try {
     const categories = await Category.findAll({
-      where: { is_deleted: false }, // Lọc các danh mục chưa bị xóa
-      attributes: ["id", "name", "description"], // Chỉ lấy các trường cần thiết
+      where: {
+        is_deleted: false,
+      },
+      attributes: ["id", "name", "description"],
     });
 
-    if (categories.length === 0) {
-      return res.status(404).json({ message: "Không có danh mục nào" });
-    }
-
-    res.status(200).json(categories);
+    res.status(200).json({
+      success: true,
+      data: categories,
+    });
   } catch (error) {
-    console.error("Lỗi khi lấy danh sách danh mục:", error);
-    res.status(500).json({ error: "Đã xảy ra lỗi khi lấy danh sách danh mục" });
+    console.error("Lỗi lấy danh mục:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
