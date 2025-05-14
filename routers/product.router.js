@@ -433,4 +433,26 @@ router.get("/:id/category", productController.getCategoryOfProduct);
  */
 router.post("/:product_id/add-to-cart/:user_id", productController.addToCart);
 
+/**
+ * @swagger
+ * /api/products:
+ *   get:
+ *     tags:
+ *       - Product
+ *     summary: Lấy tất cả sản phẩm
+ *     description: Trả về danh sách tất cả sản phẩm trong hệ thống.
+ *     responses:
+ *       200:
+ *         description: Thành công. Danh sách sản phẩm.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *       500:
+ *         description: Lỗi lấy danh sách sản phẩm
+ */
+router.get("/", productController.getAllProducts);
+
 module.exports = router;
