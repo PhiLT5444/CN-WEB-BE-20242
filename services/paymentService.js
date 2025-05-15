@@ -20,6 +20,35 @@ try {
  */
 class PaymentService {
  
+
+  /**
+   * Tạo giao dịch thanh toán mới
+   * @param {Object} paymentData - Dữ liệu giao dịch
+   * @param {string} paymentData.order_id - ID đơn hàng
+   * @param {string} paymentData.user_id - ID người dùng
+   * @param {number} paymentData.amount - Số tiền thanh toán
+   * @param {string} paymentData.payment_method - Phương thức thanh toán
+   * @param {string} paymentData.transaction_id - ID giao dịch
+   * @param {string} paymentData.payment_status - Trạng thái giao dịch
+   * @returns {Object} Giao dịch mới được tạo
+   */
+  async createPayment({ order_id, user_id, amount, payment_method, transaction_id, payment_status }) {
+    try {
+      const payment = await payments.create({
+        order_id,
+        user_id,
+        amount,
+        payment_method,
+        transaction_id: transaction_id || `TRANS_${Date.now()}`,
+        payment_status: payment_status || 'pending',
+      });
+      
+      return payment;
+    } catch (error) {
+      throw new Error(`Failed to create payment: ${error.message}`);
+    }
+  }
+
   /**
    * Giả lập thanh toán qua bên thứ ba
    * @param {string} order_id - ID của đơn hàng
@@ -165,7 +194,7 @@ async processPayment(order_id, user_id, payment_method) {
         throw new Error('Order not found');
       }
       // fix lần 1
-      if (payment.payment_status === 'pending') {
+      if (payment.payment_status === 'paid') {
             await payment.update({ payment_status: 'successful' });
             await orders.update(
                 { payment_status: 'paid', status: 'paid' },
@@ -286,34 +315,7 @@ async createInvoice(order_id, user_id, transaction = null) {
     }
   }
 
-  /**
-   * Tạo giao dịch thanh toán mới
-   * @param {Object} paymentData - Dữ liệu giao dịch
-   * @param {string} paymentData.order_id - ID đơn hàng
-   * @param {string} paymentData.user_id - ID người dùng
-   * @param {number} paymentData.amount - Số tiền thanh toán
-   * @param {string} paymentData.payment_method - Phương thức thanh toán
-   * @param {string} paymentData.transaction_id - ID giao dịch
-   * @param {string} paymentData.payment_status - Trạng thái giao dịch
-   * @returns {Object} Giao dịch mới được tạo
-   */
-  async createPayment({ order_id, user_id, amount, payment_method, transaction_id, payment_status }) {
-    try {
-      const payment = await payments.create({
-        order_id,
-        user_id,
-        amount,
-        payment_method,
-        transaction_id: transaction_id || `TRANS_${Date.now()}`,
-        payment_status: payment_status || 'pending',
-      });
-      
-      return payment;
-    } catch (error) {
-      throw new Error(`Failed to create payment: ${error.message}`);
-    }
-  }
-
+  
   /**
    * Kiểm tra trạng thái thanh toán của đơn hàng
    * @param {string} order_id - ID của đơn hàng
@@ -384,7 +386,7 @@ async createInvoice(order_id, user_id, transaction = null) {
         // Cập nhật trạng thái đơn hàng
         await orders.update({
           status: 'canceled',
-          payment_status: 'refunded'
+          payment_status: 'failed' // fix, nên xem lại
         }, {
           where: { id: order_id }
         });
@@ -396,7 +398,7 @@ async createInvoice(order_id, user_id, transaction = null) {
           amount: -payment.amount, // Số tiền âm để thể hiện hoàn tiền
           payment_method: payment.payment_method,
           transaction_id: refundResult.refund_id,
-          payment_status: 'successful',
+          payment_status: 'refunded',
           refund_reason: reason
         });
 
