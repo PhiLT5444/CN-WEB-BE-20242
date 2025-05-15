@@ -36,7 +36,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 
 //API thanh toán - tích hợp module thanh toán
-app.use("/api/payment", paymentRoutes);
+app.use("/api/payments", paymentRoutes);
 
 sequelize
   .sync()
