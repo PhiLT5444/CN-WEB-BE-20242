@@ -152,16 +152,21 @@ class PaymentService {
       if (!order) {
         throw new Error('Order not found');
       }
-
-      if (payment.payment_status === 'successful') {
-        return { success: true, message: 'Payment confirmed', order };
-      } else {
-        throw new Error('Payment confirmation failed: Invalid transaction');
-      }
+      // fix lần 1
+      if (payment.payment_status === 'pending') {
+            await payment.update({ payment_status: 'successful' });
+            await orders.update(
+                { payment_status: 'paid', status: 'paid' },
+                { where: { id: order_id } }
+            );
+            return { success: true, message: 'Payment confirmed', order };
+        } else {
+            throw new Error('Payment cannot be confirmed: Invalid status');
+        }
     } catch (error) {
-      throw new Error(`Payment confirmation failed: ${error.message}`);
+        throw new Error(`Payment confirmation failed: ${error.message}`);
     }
-  }
+}
 
   /**
    * Tạo hóa đơn cho đơn hàng
