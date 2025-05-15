@@ -32,7 +32,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false
     },
     payment_status: {
-      type: DataTypes.ENUM('pending','successful','failed'),
+      type: DataTypes.ENUM('pending','successful','failed','cancelled','refunded'),
       allowNull: true,
       defaultValue: "pending"
     },
@@ -45,6 +45,10 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.BOOLEAN,
       allowNull: true,
       defaultValue: 0
+    },
+    refund_reason: {
+    type: DataTypes.TEXT,
+     allowNull: true
     }
   }, {
     sequelize,
