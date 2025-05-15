@@ -1,8 +1,8 @@
 {
   "development": {
     "username": "root",
-    "password": null,
-    "database": "commercial_store",
+    "password": "Phongnguyen@80",
+    "database": "product_store",
     "host": "127.0.0.1",
     "dialect": "mysql"
   }

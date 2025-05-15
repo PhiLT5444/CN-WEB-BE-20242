@@ -8,9 +8,11 @@ router.post("/createUser", UserController.createUser); // to create your account
 // log out : delete token will be implemented in client-side (front-end)
 router.post("/changePassword/", authenticate, UserController.changePassword); //update your password
 
+
+//
 router.get(
   "/getAllUser",
-  authenticate,
+  authenticate, // Example for middleware 
   roleRequired("admin"),
   UserController.displayAllUser
 ); // for admin function
@@ -18,6 +20,8 @@ router.get("/getUserById/:id", authenticate, UserController.getEditInformation);
 
 router.post("/userUpdate/", authenticate, UserController.updateUser); // update user information
 //forgot password ???
+
+//
 
 router.post(
   "/punish/:id",
