@@ -436,7 +436,7 @@ let forgotPassword = (email) =>{
 
                 resolve({
                     errCode: 0,
-                    errMessage: "Vui lòng kiểm tra email để đặt lại mật khẩu"
+                    errMessage: "Yêu cầu đặt lại mật khẩu đã được gửi tới email của bạn"
                 })
             }
         }
@@ -469,7 +469,7 @@ let resetPassword = (token, newPassword) => {
             
             resolve({
                 errCode: 0,
-                errMessage: "Đặt lại mật khẩu thành công "
+                errMessage: "Đặt lại mật khẩu thành công"
             })
         }
         catch(e){

@@ -134,7 +134,7 @@ let changePassword = async(req, res)=>{
 //forgot pasword
 let forgotPassword = async(req, res)=>{
     const inputEmail = req.body.email;
-    const result = userService.forgotPassword(inputEmail);
+    const result = await userService.forgotPassword(inputEmail);
     if(result.errCode === 1){
         return res.status(404).json(result);
     }
@@ -143,7 +143,7 @@ let forgotPassword = async(req, res)=>{
 
 let resetPassword = async(req, res) => {
     const {token, newPassword} = req.body;
-    const result = userService.resetPassword(token, newPassword);
+    const result = await userService.resetPassword(token, newPassword);
     if(result.errCode === 1){
         return res.status(404).json(result);
     }
