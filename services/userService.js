@@ -1,7 +1,16 @@
 const { where } = require('sequelize');
-const db = require('../models/index')
+const sequelize = require('../config/database');
+const initModels = require('../models_gen/init-models');
+const models = initModels(sequelize);
+const {users} = models;
+const {Op} = require('sequelize');
+// const db = require('../models/index')
 const bcrypt = require('bcryptjs')
 const salt = bcrypt.genSaltSync(10);
+const crypto = require('crypto')
+const sendMail = require('../utils/sendMail');
+const { resolve } = require('path');
+const { rejects } = require('assert');
 
 let handleUserLogin = (email, password) => {
     return new Promise(async(resolve, reject) =>{
@@ -9,7 +18,7 @@ let handleUserLogin = (email, password) => {
             let userData = {};
             let isExist = await checkUserEmail(email);
             if(isExist){
-                let user = await db.users.findOne({
+                let user = await users.findOne({
                     //attributes : ['email', 'role', 'password', 'id'],
                     where: {
                         email : email,
@@ -19,7 +28,7 @@ let handleUserLogin = (email, password) => {
                     //compare password 
                     if(user.status == 'banned'){
                         userData.errCode = 4;
-                        userData.errMessage = 'You are banned!';
+                        userData.errMessage = 'Bạn đang bị áp dụng lệnh cấm';
                     }
                     else{
                         let check = await bcrypt.compare(password, user.password);
@@ -45,17 +54,17 @@ let handleUserLogin = (email, password) => {
                             }
                         }else{
                             userData.errCode = 3;
-                            userData.errMessage = 'Wrong password';
+                            userData.errMessage = 'Tài khoản hoặc mật khẩu không đúng!';
                         }
                     }
                 }else{
                     userData.errCode = 2;
-                    userData.errMessage = `User is not found`
+                    userData.errMessage = `Tài khoản hoặc mật khẩu không đúng!`
                 }
             } 
             else{
                 userData.errCode = 1;
-                userData.errMessage = `Your's email is not exist in our system`
+                userData.errMessage = `Tài khoản hoặc mật khẩu không đúng!`;
             }
             resolve(userData)
         }
@@ -68,7 +77,7 @@ let handleUserLogin = (email, password) => {
 let checkUserEmail = (userEmail) => {
     return new Promise (async(resolve, reject)=>{
         try{
-            let user = await db.users.findOne({
+            let user = await users.findOne({
                 where : {email : userEmail},
                 // attributes: {
                 //     include: ['email', 'role'],
@@ -92,42 +101,42 @@ let checkUserEmail = (userEmail) => {
 let createNewUser = async(data) => {
     return new Promise(async(resolve, reject) => {
         try{
-            let user1 = await db.users.findOne({
+            let user1 = await users.findOne({
                 where: {email: data.email}
             });
-            let user2 = await db.users.findOne({
+            let user2 = await users.findOne({
                 where: {username: data.username}
             })
-            let user3 = await db.users.findOne({
-                where : {phone_number: data.phone_number}
-            })
+            // let user3 = await users.findOne({
+            //     where : {phone_number: data.phone_number}
+            // })
             if(user1){
                 resolve({
                     errCode: 3,
-                    errMessage: 'This email was used!',
+                    errMessage: 'Email này đã được sử dụng',
                 });
             }
             else{
                 if(user2){
                     resolve({
                         errCode: 2,
-                        errMessage: 'This username was used!',
+                        errMessage: 'Tên tài khoản này đã được sử dụng',
                     });
                 }
                 else{
-                    if(user3){
-                        resolve({
-                            errCode: 1,
-                            errMessage: 'This phone number was used!', 
-                        });
-                    }
-                    else{   
+                    // if(user3){
+                    //     resolve({
+                    //         errCode: 1,
+                    //         errMessage: 'Số điện thoại này đã được sử dụng', 
+                    //     });
+                    // }
+                    //else{   
                         let hashPasswordFromBcrypt = await hashUserPassword(data.password);
-                        await db.users.create({
+                        await users.create({
                         username : data.username,
                         email: data.email,
                         password: hashPasswordFromBcrypt,
-                        //role: data.role,
+                        role: data.role,
                         full_name: data.full_name,
                         gender: data.gender,
                         address: data.address,
@@ -135,9 +144,9 @@ let createNewUser = async(data) => {
                         })
                         resolve({
                             errCode: 0,
-                            errMessage: 'ok create a new user succeed!',
+                            errMessage: 'Tạo tài khoản thành công',
                         });
-                    }
+                    //}
                 }
             }
         }catch(e){
@@ -161,17 +170,17 @@ let hashUserPassword = (password) =>{
 let getAllUser = () => {
     return new Promise(async(resolve, reject) =>{
         try{
-            const activeUser = await db.users.count({
+            const activeUser = await models.users.count({
                 where: {
                     status : 'active',
                 }
             })
-            const bannedUser = await db.users.count({
+            const bannedUser = await models.users.count({
                 where: {
                     status : 'banned',
                 }
             })
-            let users = await db.users.findAll({
+            let users = await models.users.findAll({
                 raw: true,
                 attributes: {exclude: ['password']},
             });
@@ -199,7 +208,7 @@ let getAllUser = () => {
 let getUserInfoById = (userId) =>{
     return new Promise(async(resolve, reject) => {
         try{
-            let user = await db.users.findOne({
+            let user = await users.findOne({
                 where : {id : userId},
                 raw : true,
                 attributes: {exclude: ['password']},
@@ -218,37 +227,37 @@ let getUserInfoById = (userId) =>{
 let updateUserData = (userId, data) => {
     return new Promise(async(resolve, reject) => {
         try{
-            let user = await db.users.findOne({
+            let user = await users.findOne({
                 where: {id: userId},
             })
             if(user){
-                let user1 = await db.users.findOne({
+                let user1 = await users.findOne({
                     where: {
                         username: data.username,
-                        id: { [db.Sequelize.Op.ne]: userId },
+                        id: { [Op.ne]: userId },
                     }
                 })
-                let user2 = await db.users.findOne({
-                    where: {
-                        phone_number: data.phone_number,
-                        id: { [db.Sequelize.Op.ne]: userId },
-                    }
-                })
+                // let user2 = await users.findOne({
+                //     where: {
+                //         phone_number: data.phone_number,
+                //         id: { [Op.ne]: userId },
+                //     }
+                // })
                 if(user1){
                     resolve({
                         errCode: 2,
-                        errMessage: "This username was used!"
+                        errMessage: "Tên người dùng đã được sử dụng"
                     });
                 }
                 else{
-                    if(user2){
-                        resolve({
-                            errCode: 3,
-                            errMessage: "This phone number was used!"
-                        });
-                    }
-                    else{
-                        console.log(user)
+                    // if(user2){
+                    //     resolve({
+                    //         errCode: 3,
+                    //         errMessage: "Số điện thoại này đã được sử dụng"
+                    //     });
+                    // }
+                    //else{
+                        //console.log(user)
                         user.username = data.username || user.username;
                         user.full_name = data.full_name || user.full_name;
                         user.gender = data.gender || user.gender;
@@ -257,9 +266,9 @@ let updateUserData = (userId, data) => {
                         await user.save();
                         resolve({
                             errCode : 0,
-                            errMessage: 'Updated successfully!'
+                            errMessage: 'Cập nhật thành công'
                         });
-                    }
+                    //}
                 }
             }
             else{
@@ -277,7 +286,7 @@ let updateUserData = (userId, data) => {
 let deleteUserById = (userId)=>{
     return new Promise(async(resolve, reject) => {
         try{
-            let user = await db.users.findOne({
+            let user = await users.findOne({
                 where: {id: userId}
             })
             if(user){
@@ -302,11 +311,43 @@ let deleteUserById = (userId)=>{
 let banUser = (userId) =>{
     return new Promise(async(resolve, reject)=>{
         try{
-            let user = await db.users.findOne({
+            let user = await users.findOne({
                 where: {id : userId}
             })
             if(user){
+                if(user.status === 'banned'){
+                    return resolve({
+                        errCode: 2,
+                        errMessage: 'The user was banned'
+                    })
+                }
                 user.status = 'banned';
+                await user.save();
+                return resolve({
+                    errCode: 0,
+                    errMessage: 'Done!',
+                })
+            }
+            else{
+                return resolve({
+                    errCode: 1,
+                    errMessage: 'User not found!',
+                })
+            }
+        }catch(e){
+            reject(e);
+        }
+    })
+}
+
+let unBanUser = (userId) =>{
+    return new Promise(async(resolve, reject)=>{
+        try{
+            let user = await users.findOne({
+                where: {id : userId}
+            })
+            if(user){
+                user.status = 'active';
                 await user.save();
                 return resolve({
                     errCode: 0,
@@ -328,7 +369,7 @@ let banUser = (userId) =>{
 let changeYourPassword = (userId, oldPW, newPW, confirmPW) =>{
     return new Promise(async(resolve, reject)=>{
         try{
-            const user = await db.users.findOne({
+            const user = await users.findOne({
                 where: {id : userId}
             });
             if(user){
@@ -336,14 +377,14 @@ let changeYourPassword = (userId, oldPW, newPW, confirmPW) =>{
                 if(!isMatch){
                     resolve({
                         errCode : 2,
-                        errMessage: 'Wrong password'
+                        errMessage: 'Sai mật khẩu'
                     })
                 }
                 else{
                     if(newPW !== confirmPW){
                        resolve({
                             errCode : 3,
-                            errMessage: 'confirmPW is different from newPW'
+                            errMessage: 'Mật khẩu không khớp!'
                        })
                     }
                     else{
@@ -370,6 +411,72 @@ let changeYourPassword = (userId, oldPW, newPW, confirmPW) =>{
         }
     })
 }
+
+//forgot password 
+let forgotPassword = (email) =>{
+    return new Promise(async(resolve, reject) => {
+        try{
+            const user = await users.findOne({
+                where: {email: email}
+            })
+            if(!user){
+                resolve({
+                    errCode: 1,
+                    errMessage: "Email không tồn tại"
+                })
+            }
+            else{
+                const token = crypto.randomBytes(32).toString("hex");
+                user.resetToken = token;
+                user.tokenExpire = Date.now() + 1000 * 60 * 15;
+                await user.save();
+
+                const resetLink = `http://localhost:3000/reset-password?token=${token}`
+                await sendMail(email, "Reset mật khẩu", `Link đặt lại mật khẩu: ${resetLink}`);
+
+                resolve({
+                    errCode: 0,
+                    errMessage: "Vui lòng kiểm tra email để đặt lại mật khẩu"
+                })
+            }
+        }
+        catch(err){
+            reject(err);
+        }
+    })
+}
+
+let resetPassword = (token, newPassword) => {
+    return new Promise(async(resolve, reject) => {
+        try{
+            const user = await users.findOne({
+                where:{
+                    resetToken: token,
+                    tokenExpire: { [Op.gt]: new Date() }
+                }
+            });
+
+            if(!user){
+                resolve({
+                    errCode: 1,
+                    errMessage: "Token không hợp lệ hoặc đã hết hạn"
+                })
+            }
+            user.password = await bcrypt.hash(newPassword, salt);
+            user.resetToken = null;
+            user.tokenExpire = null;
+            await user.save();
+            
+            resolve({
+                errCode: 0,
+                errMessage: "Đặt lại mật khẩu thành công "
+            })
+        }
+        catch(e){
+            reject(e);
+        }
+    })
+}
 module.exports ={
     handleUserLogin : handleUserLogin,
     createNewUser : createNewUser,
@@ -379,4 +486,7 @@ module.exports ={
     deleteUserById: deleteUserById,
     banUser: banUser,
     changeYourPassword: changeYourPassword,
+    unBanUser: unBanUser,
+    forgotPassword: forgotPassword,
+    resetPassword: resetPassword
 }
