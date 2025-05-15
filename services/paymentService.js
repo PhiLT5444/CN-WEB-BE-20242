@@ -37,46 +37,44 @@ class PaymentService {
   }
 
   /**
-   * Xử lý thanh toán cho đơn hàng
-   * @param {string} order_id - ID của đơn hàng
-   * @param {string} user_id - ID của người dùng
-   * @param {string} payment_method - Phương thức thanh toán
-   * @returns {Object} Kết quả xử lý thanh toán
-   */
-  async processPayment(order_id, user_id, payment_method) {
-    try {
-      const order = await orders.findByPk(order_id);
-      if (!order) {
-        throw new Error('Order not found');
-      }
+ * Xử lý thanh toán cho đơn hàng
+ * @param {string} order_id - ID của đơn hàng
+ * @param {string} user_id - ID của người dùng
+ * @param {string} payment_method - Phương thức thanh toán
+ * @returns {Object} Kết quả xử lý thanh toán
+ */
+async processPayment(order_id, user_id, payment_method) {
+  try {
+    const order = await orders.findByPk(order_id);
+    if (!order || order.is_deleted) {
+      throw new Error('Order not found or has been deleted');
+    }
+    if ( order.payment_status !== 'pending') {
+      throw new Error('Order is not in a payable state');
+    }
 
-      if (order.status !== 'pending') {
-        throw new Error('Order is not in a payable state');
-      }
+    const paymentResult = await this.mockThirdPartyPayment(order_id, order.total_amount, payment_method);
 
-      const paymentResult = await this.mockThirdPartyPayment(order_id, order.total_amount, payment_method);
-
+    const result = await sequelize.transaction(async (t) => {
       if (paymentResult.success) {
-        // Cập nhật trạng thái đơn hàng
-        await orders.update({
-          status: 'paid',
-          payment_status: 'paid'
-        }, {
-          where: { id: order_id }
-        });
-
-        // Tạo giao dịch thanh toán
-        await this.createPayment({
-          order_id,
-          user_id,
-          amount: order.total_amount,
-          payment_method,
-          transaction_id: paymentResult.transaction_id,
-          payment_status: 'successful',
-        });
-
-        const invoice = await this.createInvoice(order_id, user_id);
-        
+        await orders.update(
+          { status: 'processing', payment_status: 'paid' },
+          { where: { id: order_id }, transaction: t }
+        );
+        await payments.create(
+          {
+            order_id,
+            user_id,
+            amount: order.total_amount,
+            payment_method,
+            payment_status: 'paid',
+            transaction_id: paymentResult.transaction_id,
+            created_at: new Date(),
+            updated_at: new Date()
+          },
+          { transaction: t }
+        );
+        const invoice = await this.createInvoice(order_id, user_id, t);
         return {
           success: true,
           message: 'Payment successful',
@@ -84,19 +82,33 @@ class PaymentService {
           invoice_id: invoice.id,
         };
       } else {
-        // Cập nhật trạng thái đơn hàng khi thanh toán thất bại
-        await orders.update({
-          payment_status: 'failed'
-        }, {
-          where: { id: order_id }
-        });
-        
+        await orders.update(
+          { payment_status: 'failed' },
+          { where: { id: order_id }, transaction: t }
+        );
+        await payments.create(
+          {
+            order_id,
+            user_id,
+            amount: order.total_amount,
+            payment_method,
+            payment_status: 'failed',
+            transaction_id: paymentResult.transaction_id || `failed-${Date.now()}`,
+            created_at: new Date(),
+            updated_at: new Date()
+          },
+          { transaction: t }
+        );
         throw new Error(paymentResult.message);
       }
-    } catch (error) {
-      throw new Error(`Payment processing failed: ${error.message}`);
-    }
+    });
+
+    return result;
+  } catch (error) {
+    console.error(`Payment processing error: ${error.message}`);
+    throw new Error(`Payment processing failed: ${error.message}`);
   }
+}
 
   /**
    * Hủy thanh toán cho đơn hàng
@@ -168,38 +180,57 @@ class PaymentService {
     }
 }
 
-  /**
-   * Tạo hóa đơn cho đơn hàng
-   * @param {string} order_id - ID của đơn hàng
-   * @param {string} user_id - ID của người dùng
-   * @returns {Object} Hóa đơn mới được tạo
-   */
-  async createInvoice(order_id, user_id) {
-    try {
-      const order = await orders.findByPk(order_id, {
-        include: [{
-          model: db.orderdetails,
-          as: 'orderdetails'
-        }]
-      });
-      
-      if (!order) {
-        throw new Error('Order not found');
-      }
+ /**
+ * Tạo hóa đơn cho đơn hàng
+ * @param {string} order_id - ID của đơn hàng
+ * @param {string} user_id - ID của người dùng
+ * @param {Object} transaction - Transaction object từ Sequelize (optional)
+ * @returns {Object} Hóa đơn mới được tạo
+ */
+async createInvoice(order_id, user_id, transaction = null) {
+  try {
+    const order = await orders.findByPk(order_id, {
+      attributes: ['id', 'total_amount'],
+      include: [{
+        model: models.orderdetails,
+        as: 'orderdetails',
+        attributes: ['id', 'product_id', 'quantity', 'price', 'total_price'],
+        where: { is_deleted: 0 },
+        required: false
+      }],
+      transaction
+    });
 
-      const invoice = await invoices.create({
-        order_id: order.id,
-        user_id: user_id,
-        items: JSON.stringify(order.orderdetails),
-        total_amount: order.total_amount,
-      });
-
-      return invoice;
-    } catch (error) {
-      throw new Error(`Invoice creation failed: ${error.message}`);
+    if (!order || order.is_deleted) {
+      throw new Error('Order not found or has been deleted');
     }
-  }
 
+    const orderDetailsData = order.orderdetails.map(detail => ({
+      id: detail.id,
+      product_id: detail.product_id,
+      quantity: detail.quantity,
+      price: detail.price,
+      total_price: detail.total_price || (detail.price * detail.quantity)
+    }));
+
+    const invoice = await models.invoices.create(
+      {
+        order_id: order.id,
+        user_id,
+        items: JSON.stringify(orderDetailsData),
+        total_amount: order.total_amount,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      { transaction }
+    );
+
+    return invoice;
+  } catch (error) {
+    console.error(`Invoice creation error: ${error.message}`);
+    throw new Error(`Invoice creation failed: ${error.message}`);
+  }
+}
   /**
    * Lấy thông tin chi tiết của hóa đơn
    * @param {string} invoice_id - ID của hóa đơn
