@@ -7,6 +7,7 @@ const initModels = require('../models_gen/init-models');
 const models = initModels(sequelize);
 const {users, orders, payments} = models;
 const {Op} = require('sequelize');
+const products = require('../models_gen/products');
 // Vì invoices.js chưa được chuyển sang models_gen nên cần xác định
 let invoices;
 try {
@@ -34,17 +35,35 @@ class PaymentService {
    */
   async createPayment({ order_id, user_id, amount, payment_method, payment_status }) {
     try {
+
       const transaction_id = `TRANS_${Date.now()}`;
+       // Bước 1: Update đơn hàng trước
+      // Cập nhật bảng orders với điều kiện
+    const [affectedRows] = await orders.update(
+      { payment_status: 'pending', status: 'processing' },
+      {
+        where: {
+          total_amount: amount,
+          user_id: user_id
+        }
+      }
+    );
+
+    if (affectedRows === 0) {
+      throw new Error(`No matching order found with total_amount = ${amount} and user_id = ${user_id}`);
+    }
+
+    // Bước 2: Tạo payment tương ứng
       const payment = await payments.create({
-        order_id,
-        user_id,
-        amount,
-        payment_method,
-        transaction_id,
-        payment_status: 'pending',
-      });
-      
-      return payment;
+      order_id,
+      user_id,
+      amount,
+      payment_method,
+      transaction_id,
+      payment_status: 'pending',
+    });
+
+    return payment ;
     } catch (error) {
       throw new Error(`Failed to create payment: ${error.message}`);
     }
@@ -253,7 +272,7 @@ async createInvoice(order_id, user_id, transaction = null) {
       {
         order_id: order.id,
         user_id,
-        items: JSON.stringify(orderDetailsData),
+        items: products.name,
         total_amount: order.total_amount,
         created_at: new Date(),
         updated_at: new Date()
@@ -282,7 +301,9 @@ async createInvoice(order_id, user_id, transaction = null) {
 
       // Lấy thêm thông tin liên quan
       const order = await orders.findByPk(invoice.order_id);
-      const user = await users.findByPk(invoice.user_id);
+      const user = await users.findByPk(invoice.user_id,{
+          attributes: { exclude: ['resetToken','tokenExpire','password'] }
+    });;
 
       // Kết hợp dữ liệu
       return {
@@ -296,14 +317,15 @@ async createInvoice(order_id, user_id, transaction = null) {
   }
 
   /**
-   * Lấy danh sách tất cả các giao dịch thanh toán
+   * Lấy danh sách tất cả các giao dịch thanh toán của users
    * @returns {Array} Danh sách các giao dịch
    */
-  async getAllPayments() {
+  async getAllPayments(user_id) {
     try {
       const allPayments = await payments.findAll({
         where: {
-          is_deleted: false
+          is_deleted: false,
+          user_id
         },
         include: [
           { 
@@ -312,7 +334,8 @@ async createInvoice(order_id, user_id, transaction = null) {
           },
           { 
             model: users,
-            as: 'user'
+            as: 'user',
+            attributes: { exclude: ['resetToken', 'password','tokenExpire'] }  // bỏ các trường nhạy cảm
           }
         ]
       });

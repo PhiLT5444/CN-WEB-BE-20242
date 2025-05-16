@@ -136,7 +136,7 @@ class PaymentController {
   }
 
   /**
-   * Lấy danh sách tất cả các giao dịch thanh toán
+   * Lấy danh sách tất cả các giao dịch thanh toán của users
    * 
    * @route GET /api/payments
    * @param {Object} req - Request object
@@ -145,8 +145,19 @@ class PaymentController {
    */
   async getAllPayments(req, res) {
     try {
-      const payments = await PaymentService.getAllPayments();
+      const user_id = req.query.user_id;  // lấy user_id từ query string, vd: /api/payments?user_id=3
+
+      // Kiểm tra user_id có tồn tại và là số hợp lệ
+    if (!user_id || isNaN(user_id) || user_id <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid or missing user_id parameter' });
+    }
+      const payments = await PaymentService.getAllPayments(parseInt(user_id));
       
+      // Kiểm tra nếu không có giao dịch nào
+    if (!payments || payments.length === 0) {
+      return res.status(404).json({ success: false, message: 'No payments found for this user' });
+    }
+    
       res.status(200).json({ success: true, payments });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });

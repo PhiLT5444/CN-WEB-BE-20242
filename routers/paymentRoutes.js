@@ -22,8 +22,8 @@ router.get('/confirm', paymentController.confirmPayment);
 // GET /api/invoices/:invoice_id
 router.get('/invoices/:invoice_id', paymentController.getInvoice);
 
-// 5.Route lấy danh sách tất cả các giao dịch thanh toán  từ trước tới nay
-// GET /api/payments
+// 5.Route lấy danh sách tất cả các giao dịch thanh toán của user từ trước tới nay
+// GET /api/payments?user_id=xxx
 router.get('/', paymentController.getAllPayments);
 
 //fix lần 1
