@@ -7,12 +7,12 @@ let handleLogin = async (req, res) => {
     let email = req.body.email;
     let password = req.body.password;
 
-    if(!email || !password){
-        return res.status(400).json({
-            errCode: 1,
-            message: 'Missing inputs parameter!'
-        })
-    }
+    // if(!email || !password){
+    //     return res.status(400).json({
+    //         errCode: 1,
+    //         message: 'Missing inputs parameter!'
+    //     })
+    // }
 
     let userData = await userService.handleUserLogin(email, password);
     //console.log(userData)
@@ -40,9 +40,7 @@ let handleLogin = async (req, res) => {
 
 let createUser = async(req, res) => {
     let message = await userService.createNewUser(req.body)
-    console.log(message);
-    //console.log(req.body)
-    return res.send('created successfully')
+    return res.status(200).json(message);
 }
 
 let displayAllUser = async(req, res) => {
@@ -54,7 +52,7 @@ let displayAllUser = async(req, res) => {
 }
 
 let getEditInformation  = async(req, res) => {
-    let userId = req.params.id;
+    let userId = req.user.id;
     console.log(userId)
 
     // Ham danh gia obj tra ve {} hay la cac du lieu
@@ -87,9 +85,6 @@ let updateUser = async(req, res) =>{
     // console.log(req.params.id)
     const result = await userService.updateUserData(userId, req.body);
     //return res.status(200).json(result);
-    if(result.errCode == 1){
-        return res.status(404).json(result);
-    }
     return res.status(200).json(result);
 }
 
@@ -107,6 +102,16 @@ let deleteUser = async(req, res)=>{
 let getPunishmentOnUser = async(req, res)=>{
     let id = req.params.id;
     const result = await userService.banUser(id);
+    if(result.errCode != 0){
+        return res.status(400).json(result);
+    }
+    return res.status(200).json(result);
+}
+
+let unBanUser = async(req, res)=>{
+
+    let id = req.params.id;
+    const result = await userService.unBanUser(id);
     if(result.errCode == 1){
         return res.status(400).json(result);
     }
@@ -126,6 +131,24 @@ let changePassword = async(req, res)=>{
     }
     return res.status(200).json(result);
 }
+//forgot pasword
+let forgotPassword = async(req, res)=>{
+    const inputEmail = req.body.email;
+    const result = await userService.forgotPassword(inputEmail);
+    if(result.errCode === 1){
+        return res.status(404).json(result);
+    }
+    return res.status(200).json(result);
+}
+
+let resetPassword = async(req, res) => {
+    const {token, newPassword} = req.body;
+    const result = await userService.resetPassword(token, newPassword);
+    if(result.errCode === 1){
+        return res.status(404).json(result);
+    }
+    return res.status(200).json(result);
+}
 
 module.exports = {
     handleLogin: handleLogin,
@@ -136,4 +159,7 @@ module.exports = {
     deleteUser: deleteUser,
     getPunishmentOnUser: getPunishmentOnUser,
     changePassword: changePassword,
+    unBanUser: unBanUser,
+    forgotPassword: forgotPassword,
+    resetPassword: resetPassword,
 }

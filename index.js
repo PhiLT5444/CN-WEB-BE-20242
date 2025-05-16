@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const sequelize = require("./config/database");
 const productRoutes = require("./routers/product.router");
+const cors = require("cors");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const userRoutes = require("./routers/user.router");
@@ -13,10 +14,7 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// 👇 Cho phép frontend ở localhost:3000 gọi backend
-app.use(cors({
-  origin: "http://localhost:3000",
-}));
+app.use(cors());
 
 const swaggerOptions = {
   definition: {
