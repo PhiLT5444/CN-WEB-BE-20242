@@ -2,7 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const sequelize = require("./config/database");
 const productRoutes = require("./routers/product.router");
-const cors = require("cors");
+
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const userRoutes = require("./routers/user.router");
