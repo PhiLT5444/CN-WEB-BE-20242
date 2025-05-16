@@ -21,10 +21,10 @@ class PaymentController {
    */
   async processPayment(req, res) {
     try {
-      const { order_id, user_id, payment_method } = req.body;
+      const { order_id, user_id, payment_method, transaction_id } = req.body;
       
       // Kiểm tra dữ liệu đầu vào
-      if (!order_id || !user_id || !payment_method) {
+      if (!order_id || !user_id || !payment_method ) {
         return res.status(400).json({ 
           success: false, 
           message: 'Missing required fields for payment processing' 
@@ -35,7 +35,15 @@ class PaymentController {
       
       res.status(200).json(result);
     } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
+      console.error(`Payment controller error: ${error.message}`);
+      // Phân biệt lỗi client và lỗi server để trả về status code phù hợp
+      if (error.message.includes('not found') || 
+          error.message.includes('not in a payable state') ||
+          error.message.includes('Missing required fields')) {
+        return res.status(400).json({ success: false, message: error.message });
+      }
+      return res.status(500).json({ success: false, message: error.message });
+    
     }
   }
 
@@ -160,7 +168,7 @@ class PaymentController {
    */
   async createPayment(req, res) {
     try {
-      const { order_id, user_id, amount, payment_method, transaction_id, payment_status } = req.body;
+      const { order_id, user_id, amount, payment_method, payment_status } = req.body;
 
       if (!order_id || !user_id || !amount || !payment_method) {
         return res.status(400).json({ 
@@ -174,7 +182,6 @@ class PaymentController {
         user_id, 
         amount, 
         payment_method,
-        transaction_id,
         payment_status
       });
       // fix lần 1

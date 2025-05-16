@@ -32,15 +32,16 @@ class PaymentService {
    * @param {string} paymentData.payment_status - Trạng thái giao dịch
    * @returns {Object} Giao dịch mới được tạo
    */
-  async createPayment({ order_id, user_id, amount, payment_method, transaction_id, payment_status }) {
+  async createPayment({ order_id, user_id, amount, payment_method, payment_status }) {
     try {
+      const transaction_id = `TRANS_${Date.now()}`;
       const payment = await payments.create({
         order_id,
         user_id,
         amount,
         payment_method,
-        transaction_id: transaction_id || `TRANS_${Date.now()}`,
-        payment_status: payment_status || 'pending',
+        transaction_id,
+        payment_status: 'pending',
       });
       
       return payment;
@@ -56,11 +57,11 @@ class PaymentService {
    * @param {string} payment_method - Phương thức thanh toán
    * @returns {Object} Kết quả thanh toán giả lập (success/fail)
    */
-  async mockThirdPartyPayment(order_id, amount, payment_method) {
+  async mockThirdPartyPayment(order_id, amount, payment_method, transaction_id) {
     const mockResponse = {
-      success: Math.random() > 0.2,
-      transaction_id: `TRANS_${Date.now()}`,
-      message: Math.random() > 0.2 ? 'Payment successful' : 'Payment failed due to insufficient funds',
+      success: Math.random() > 0.1,
+      transaction_id, //Lấy trans_id từ createPayment
+      message: Math.random() > 0.1 ? 'Payment successful' : 'Payment failed due to insufficient funds',
     };
     return mockResponse;
   }
@@ -82,7 +83,16 @@ async processPayment(order_id, user_id, payment_method) {
       throw new Error('Order is not in a payable state');
     }
 
-    const paymentResult = await this.mockThirdPartyPayment(order_id, order.total_amount, payment_method);
+      // Tạo bản ghi payment trước với trạng thái pending
+      const paymentRecord = await this.createPayment({
+        order_id,
+        user_id,
+        amount: order.total_amount,
+        payment_method,
+        payment_status: 'pending'
+      });
+
+    const paymentResult = await this.mockThirdPartyPayment(order_id, order.total_amount, payment_method,paymentRecord.transaction_id);
 
     const result = await sequelize.transaction(async (t) => {
       if (paymentResult.success) {
@@ -90,19 +100,16 @@ async processPayment(order_id, user_id, payment_method) {
           { status: 'processing', payment_status: 'paid' },
           { where: { id: order_id }, transaction: t }
         );
-        await payments.create(
-          {
-            order_id,
-            user_id,
-            amount: order.total_amount,
-            payment_method,
-            payment_status: 'paid',
-            transaction_id: paymentResult.transaction_id,
-            created_at: new Date(),
-            updated_at: new Date()
-          },
-          { transaction: t }
-        );
+        await payments.update(
+            {
+              payment_status: 'paid',
+              updated_at: new Date()
+            },
+            { 
+              where: { transaction_id: paymentRecord.transaction_id },
+              transaction: t 
+            }
+          );
         const invoice = await this.createInvoice(order_id, user_id, t);
         return {
           success: true,
@@ -115,20 +122,20 @@ async processPayment(order_id, user_id, payment_method) {
           { payment_status: 'failed' },
           { where: { id: order_id }, transaction: t }
         );
-        await payments.create(
-          {
-            order_id,
-            user_id,
-            amount: order.total_amount,
-            payment_method,
-            payment_status: 'failed',
-            transaction_id: paymentResult.transaction_id || `failed-${Date.now()}`,
-            created_at: new Date(),
-            updated_at: new Date()
-          },
-          { transaction: t }
-        );
-        throw new Error(paymentResult.message);
+        await payments.update(
+           {
+              payment_status: 'failed',
+              updated_at: new Date()
+            },
+            { 
+              where: { transaction_id: paymentRecord.transaction_id },
+              transaction: t 
+            }
+          );
+         // Xử lý lỗi chi tiết hơn
+          const errorMessage = paymentResult.message || 'Unknown payment error';
+          console.error(`Payment failed: ${errorMessage} for order ${order_id}`);
+          throw new Error(errorMessage);
       }
     });
 
