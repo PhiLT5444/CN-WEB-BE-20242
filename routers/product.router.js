@@ -101,6 +101,7 @@ router.get("/categories", productController.getAllCategories);
  *       500:
  *         description: Lỗi thêm sản phẩm
  */
+
 router.post("/", validateAddProduct, productController.addProduct);
 /**
  * @swagger

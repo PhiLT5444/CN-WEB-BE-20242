@@ -7,12 +7,13 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const userRoutes = require("./routers/user.router");
 const orderRoutes = require("./routers/order.router");
-//Import route thanh toán
 const paymentRoutes = require("./routers/paymentRoutes");
-const cors = require("cors"); // Import cors
+const cartRoutes = require("./routers/cart.router");
+
 dotenv.config();
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.use(cors());
 
@@ -39,14 +40,17 @@ app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 
 //API thanh toán - tích hợp module thanh toán
-app.use("/api/payments", paymentRoutes);
+app.use("/api/payment", paymentRoutes);
+
+//API quản lý giỏ hàng
+app.use("/api/cart", cartRoutes);
 
 sequelize
   .sync()
   .then(() => console.log("✅ CSDL đã đồng bộ!"))
   .catch((err) => console.error("❌ Lỗi đồng bộ CSDL:", err));
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () =>
   console.log(`🚀 Server chạy tại http://localhost:${PORT}`)
 );

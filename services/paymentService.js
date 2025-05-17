@@ -188,6 +188,13 @@ async processPayment(order_id, user_id, payment_method) {
       }, {
         where: { id: order_id }
       });
+      // Cập nhật trạng thái đơn hàng khi hủy thanh toán
+      await orders.update({
+        status: 'canceled',
+        payment_status: 'failed'
+      }, {
+        where: { id: order_id }
+      });
 
       return { success: true, message: 'Payment cancelled successfully' };
     } catch (error) {
@@ -206,6 +213,8 @@ async processPayment(order_id, user_id, payment_method) {
       const payment = await payments.findOne({
         where: {
           order_id,
+          transaction_id,
+          is_deleted: false
           transaction_id,
           is_deleted: false
         }
@@ -293,6 +302,7 @@ async createInvoice(order_id, user_id, transaction = null) {
    */
   async getInvoice(invoice_id) {
     try {
+      const invoice = await invoices.findByPk(invoice_id);
       const invoice = await invoices.findByPk(invoice_id);
       
       if (!invoice) {
