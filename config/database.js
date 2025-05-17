@@ -2,9 +2,9 @@ const { Sequelize } = require("sequelize");
 require("dotenv").config();
 
 const sequelize = new Sequelize({
-  database: 'product_store',
+  database: "product_store",
   username: process.env.MYSQL_USERNAME || process.env.MYSQL_USERNAME,
-  password: null,
+  password: "841639647172n",
   host: process.env.MYSQL_HOST || "127.0.0.1",
   dialect: "mysql",
   port: process.env.MYSQL_PORT || 3306,

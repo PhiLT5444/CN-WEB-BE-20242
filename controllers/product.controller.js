@@ -1,14 +1,10 @@
 const { Op } = require("sequelize");
 const sequelize = require("../config/database");
-const Product = require("../models_gen/products")(
-  sequelize,
-  sequelize.DataTypes
-);
-const Category = require("../models_gen/categories")(
-  sequelize,
-  sequelize.DataTypes
-);
-const Cart = require("../models_gen/carts")(sequelize, sequelize.DataTypes);
+const initModels = require("../models_gen/init-models");
+const models = initModels(sequelize);
+const Product = models.products;
+const Category = models.categories;
+const Cart = models.carts;
 
 exports.addToCart = async (req, res) => {
   const { product_id, user_id } = req.params;
