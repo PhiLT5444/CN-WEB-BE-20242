@@ -9,11 +9,11 @@ const userRoutes = require("./routers/user.router");
 const orderRoutes = require("./routers/order.router");
 const paymentRoutes = require("./routers/paymentRoutes");
 const cartRoutes = require("./routers/cart.router");
-
+const cors = require("cors");
 dotenv.config();
 const app = express();
 app.use(express.json());
-app.use(cors());
+
 
 app.use(cors());
 
@@ -40,7 +40,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 
 //API thanh toán - tích hợp module thanh toán
-app.use("/api/payment", paymentRoutes);
+app.use("/api/payments", paymentRoutes);
 
 //API quản lý giỏ hàng
 app.use("/api/cart", cartRoutes);

@@ -215,8 +215,6 @@ async processPayment(order_id, user_id, payment_method) {
           order_id,
           transaction_id,
           is_deleted: false
-          transaction_id,
-          is_deleted: false
         }
       });
 
@@ -302,9 +300,7 @@ async createInvoice(order_id, user_id, transaction = null) {
    */
   async getInvoice(invoice_id) {
     try {
-      const invoice = await invoices.findByPk(invoice_id);
-      const invoice = await invoices.findByPk(invoice_id);
-      
+      const invoice = await invoices.findByPk(invoice_id);      
       if (!invoice) {
         throw new Error('Invoice not found');
       }
