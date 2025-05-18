@@ -14,6 +14,9 @@ router.get('/status/pending-delivery', orderController.getPendingDeliveryOrders)
 // Gán shipper cho đơn hàng
 router.put('/:order_id/assign-shipper', orderController.assignShipper);
 
+//Tạo đơn hàng
+router.post('/create', orderController.createOrder)
+
 // Hủy đơn hàng
 router.put('/:order_id/cancel', orderController.cancelOrder);
 

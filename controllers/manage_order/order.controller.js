@@ -135,3 +135,43 @@ exports.markOrderAsFailed = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+exports.createOrder = async (req, res) => {
+    const { user_id, shipping_address, payment_method, cartItems } = req.body;
+
+    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
+        return res.status(400).json({ message: "Giỏ hàng trống" });
+    }
+
+    try {
+        const total_amount = cartItems.reduce((total, item) => {
+            return total + item.price * item.quantity;
+        }, 0);
+
+        // Tạo đơn hàng
+        const newOrder = await orders.create({
+            user_id,
+            shipping_address,
+            payment_status: "pending",
+            status: "pending",
+            total_amount,
+        });
+
+        // Tạo các chi tiết đơn hàng
+        const orderDetailsData = cartItems.map(item => ({
+            order_id: newOrder.id,
+            product_id: item.product_id,
+            quantity: item.quantity,
+            price: item.price,
+            total_price: item.price * item.quantity,
+        }));
+
+        await orderdetails.bulkCreate(orderDetailsData);
+
+        res.status(201).json({ message: "Tạo đơn hàng thành công", order_id: newOrder.id });
+    } catch (error) {
+        console.error("Lỗi tạo đơn hàng:", error);
+        res.status(500).json({ message: "Đã xảy ra lỗi khi tạo đơn hàng" });
+    }
+};
+
