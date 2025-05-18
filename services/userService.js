@@ -477,6 +477,34 @@ let resetPassword = (token, newPassword) => {
         }
     })
 }
+
+let getInfo = (userId) =>{
+    return new Promise(async(resolve, reject) =>{
+        try{
+            let userData = {};
+            let user = await users.findOne({
+                where: {id: userId}
+            })
+            if(user){
+                userData.errCode = 0;
+                userData.errMessage = 'OK';
+                userData.user = {
+                    full_name: user.full_name,
+                    address: user.address,
+                    phone_number: user.phone_number,
+                }
+            }
+            else{
+                userData.errCode = 1;
+                userData.errMessage = "Không tồn tại người dùng"
+            }
+            resolve(userData);
+        }
+        catch(e){
+            reject(e);
+        }
+    })
+}
 module.exports ={
     handleUserLogin : handleUserLogin,
     createNewUser : createNewUser,
@@ -488,5 +516,6 @@ module.exports ={
     changeYourPassword: changeYourPassword,
     unBanUser: unBanUser,
     forgotPassword: forgotPassword,
-    resetPassword: resetPassword
+    resetPassword: resetPassword,
+    getInfo: getInfo,
 }

@@ -151,6 +151,13 @@ let resetPassword = async (req, res) => {
   return res.status(200).json(result);
 };
 
+let getUser = async(req, res) => {
+  const userId = req.query.id;
+  console.log(userId)
+  const result = await userService.getInfo(userId);
+  return res.status(200).json(result);
+};
+
 module.exports = {
   handleLogin: handleLogin,
   createUser: createUser,
@@ -163,4 +170,5 @@ module.exports = {
   unBanUser: unBanUser,
   forgotPassword: forgotPassword,
   resetPassword: resetPassword,
+  getUser: getUser,
 };
