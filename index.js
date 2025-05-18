@@ -9,6 +9,7 @@ const orderRoutes = require("./routers/order.router");
 const paymentRoutes = require("./routers/paymentRoutes");
 const cartRoutes = require("./routers/cart.router");
 const cors = require("cors");
+const {authenticate} = require('./middleware/auth');
 
 dotenv.config();
 const app = express();

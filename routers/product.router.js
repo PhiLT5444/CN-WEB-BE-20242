@@ -224,7 +224,7 @@ router.put(
  *       500:
  *         description: Lỗi phân loại sản phẩm
  */
-router.put("/:id/category", productController.assignCategoryToProduct);
+router.get("/:id/category", productController.assignCategoryToProduct);
 
 /**
  * @swagger

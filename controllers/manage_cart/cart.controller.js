@@ -2,8 +2,8 @@ const cartService = require("../../services/CartService");
 
 exports.getCart = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const data = await cartService.getListCarts(userId);
+        const user_id = req.params.user_id;
+        const data = await cartService.getListCarts(user_id);
         res.json(data);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -12,10 +12,12 @@ exports.getCart = async (req, res) => {
 
 exports.addToCart = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const { product_id, quantity } = req.body;
+        const { user_id, product_id, quantity } = req.body;
+        if (!user_id || !product_id || !quantity) {
+            return res.status(400).json({ message: "Thiếu thông tin" });
+        }
         const item = await cartService.addProductToCart(
-            userId,
+            user_id,
             product_id,
             quantity
         );
@@ -27,10 +29,11 @@ exports.addToCart = async (req, res) => {
 
 exports.updateCartItem = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const user_id = req.body.user_id;
+        console.log(user_id);
         const { product_id, quantity } = req.body;
         const item = await cartService.updateQuantity(
-            userId,
+            user_id,
             product_id,
             quantity
         );
@@ -42,10 +45,10 @@ exports.updateCartItem = async (req, res) => {
 
 exports.deleteCartItem = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const { user_id } = req.body;
         const { product_id } = req.params;
         const result = await cartService.deleteProductFromCart(
-            userId,
+            user_id,
             product_id
         );
         res.json({ success: result });
@@ -56,10 +59,9 @@ exports.deleteCartItem = async (req, res) => {
 
 exports.createOrder = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const { shippingMethod, paymentMethod } = req.body;
+        const { user_id, shippingMethod, paymentMethod } = req.body;
         const order = await cartService.order(
-            userId,
+            user_id,
             shippingMethod,
             paymentMethod
         );
@@ -71,8 +73,8 @@ exports.createOrder = async (req, res) => {
 
 exports.getOrderHistory = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const orders = await cartService.getHistoryOrder(userId);
+        const user_id = req.user.id;
+        const orders = await cartService.getHistoryOrder(user_id);
         res.json(orders);
     } catch (err) {
         res.status(500).json({ message: err.message });
