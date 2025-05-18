@@ -1,11 +1,26 @@
 const express = require("express");
 const router = express.Router();
 const productController = require("../controllers/product.controller");
+const branchController = require("../controllers/branch.controller");
 const {
   validateAddProduct,
   validateUpdateProduct,
   validateDeleteProduct,
 } = require("../middleware/product.validator");
+
+/**
+ * @swagger
+ * /api/products/branches:
+ *   get:
+ *     summary: Lấy danh sách tất cả nhãn hàng (branch)
+ *     tags: [Branches]
+ *     responses:
+ *       200:
+ *         description: Danh sách nhãn hàng
+ *       500:
+ *         description: Lỗi lấy danh sách nhãn hàng
+ */
+router.get("/branches", branchController.getAllBranches);
 
 /**
  * @swagger
@@ -455,5 +470,170 @@ router.post("/:product_id/add-to-cart/:user_id", productController.addToCart);
  *         description: Lỗi lấy danh sách sản phẩm
  */
 router.get("/", productController.getAllProducts);
+
+/**
+ * @swagger
+ * /api/products/public-create-user:
+ *   post:
+ *     summary: Tạo người dùng mới (không cần xác thực)
+ *     tags: [Products]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               full_name:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *               role:
+ *                 type: string
+ *                 enum: [admin, customer, shipper]
+ *                 description: Quyền của người dùng (admin, customer, shipper). Nếu không truyền sẽ mặc định là customer.
+ *     responses:
+ *       201:
+ *         description: Đăng ký thành công
+ *       400:
+ *         description: Lỗi đầu vào
+ */
+router.post("/public-create-user", async (req, res) => {
+  //cái này để thêm người dùng có quyền admin thôi
+  const {
+    username,
+    password,
+    email,
+    full_name,
+    address,
+    phone_number,
+    gender,
+    role, // Cho phép truyền role (admin, customer, shipper)
+  } = req.body;
+  if (
+    !username ||
+    !password ||
+    !email ||
+    !full_name ||
+    !address ||
+    !phone_number
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Thiếu thông tin bắt buộc" });
+  }
+  try {
+    const { users: User } = require("../models_gen/init-models")(
+      require("../config/database")
+    );
+    const existed = await User.findOne({ where: { username } });
+    if (existed)
+      return res
+        .status(400)
+        .json({ success: false, message: "Tên đăng nhập đã tồn tại" });
+    // Nếu không truyền role hoặc truyền sai, mặc định là customer
+    const validRoles = ["admin", "customer", "shipper"];
+    const userRole = validRoles.includes(role) ? role : "customer";
+    const user = await User.create({
+      username,
+      password,
+      email,
+      full_name,
+      address,
+      phone_number,
+      gender,
+      role: userRole,
+    });
+    res
+      .status(201)
+      .json({ success: true, message: "Đăng ký thành công", user });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ success: false, message: "Lỗi đăng ký", details: err.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/products/branches:
+ *   post:
+ *     summary: Thêm nhãn hàng (branch)
+ *     tags: [Branches]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Thêm nhãn hàng thành công
+ *       400:
+ *         description: Lỗi đầu vào
+ */
+router.post("/branches", branchController.createBranch);
+
+/**
+ * @swagger
+ * /api/products/branches/{id}:
+ *   delete:
+ *     summary: Xóa nhãn hàng (branch)
+ *     tags: [Branches]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID của nhãn hàng
+ *     responses:
+ *       200:
+ *         description: Đã xóa nhãn hàng
+ *       404:
+ *         description: Không tìm thấy nhãn hàng
+ *       500:
+ *         description: Lỗi xóa nhãn hàng
+ */
+router.delete("/branches/:id", branchController.deleteBranch);
+
+/**
+ * @swagger
+ * /api/products/branch/{branch_id}:
+ *   get:
+ *     summary: Lọc sản phẩm theo nhãn hàng (branch)
+ *     tags: [Branches]
+ *     parameters:
+ *       - in: path
+ *         name: branch_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID của nhãn hàng
+ *     responses:
+ *       200:
+ *         description: Danh sách sản phẩm theo nhãn hàng
+ *       404:
+ *         description: Không có sản phẩm nào thuộc nhãn hàng này
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.get("/branch/:branch_id", branchController.getProductsByBranch);
 
 module.exports = router;
