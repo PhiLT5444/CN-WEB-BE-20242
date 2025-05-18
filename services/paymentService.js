@@ -40,7 +40,7 @@ class PaymentService {
        // Bước 1: Update đơn hàng trước
       // Cập nhật bảng orders với điều kiện
     const [affectedRows] = await orders.update(
-      { payment_status: 'pending', status: 'processing' },
+      { payment_status: 'pending', status: 'pending' },
       {
         where: {
           total_amount: amount,

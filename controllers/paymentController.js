@@ -196,7 +196,7 @@ class PaymentController {
         payment_status
       });
       // fix lần 1
-      res.status(201).json({ success: true, transaction_id: payment.transaction_id, 
+      res.status(201).json({ success: true, order_id, amount, payment_method /*,transaction_id: payment.transaction_id*/, 
             message: 'Payment created successfully' });
     } catch (error) {
       res.status(400).json({ success: false, message: error.message });
