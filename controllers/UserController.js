@@ -158,6 +158,11 @@ let getUser = async(req, res) => {
   return res.status(200).json(result);
 };
 
+let getShipperList = async(req, res) => {
+  const result = await userService.getShipperList();
+  return res.status(200).json(result);
+}
+
 module.exports = {
   handleLogin: handleLogin,
   createUser: createUser,
@@ -171,4 +176,5 @@ module.exports = {
   forgotPassword: forgotPassword,
   resetPassword: resetPassword,
   getUser: getUser,
+  getShipperList: getShipperList,
 };

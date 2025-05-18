@@ -51,5 +51,6 @@ router.post("/reset-password", UserController.resetPassword);
 
 //take infor by ID
 router.get("/getUserInfo", UserController.getUser);
+router.get("/getAllShipper",authenticate, roleRequired("admin") ,UserController.getShipperList);
 
 module.exports = router;
