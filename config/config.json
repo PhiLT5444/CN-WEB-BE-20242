@@ -1,9 +1,15 @@
 {
-  "development": {
-    "username": "root",
-    "password": "admin",
-    "database": "product_store",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
-  }
+    "development": {
+        "username": "root",
+        "password": "NLbQxYwzIVqSVVmpEZZppZcNQchqlTiL",
+        "database": "railway",
+        "host": "switchyard.proxy.rlwy.net",
+        "port": 49273,
+        "dialect": "mysql",
+        "dialectOptions": {
+            "ssl": {
+                "rejectUnauthorized": false
+            }
+        }
+    }
 }
