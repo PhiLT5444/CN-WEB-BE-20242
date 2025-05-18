@@ -49,4 +49,7 @@ router.post(
 router.post("/forgot-password", UserController.forgotPassword);
 router.post("/reset-password", UserController.resetPassword);
 
+//take infor by ID
+router.get("/getUserInfo", UserController.getUser);
+
 module.exports = router;
