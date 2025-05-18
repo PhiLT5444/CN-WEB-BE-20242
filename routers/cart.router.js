@@ -18,6 +18,6 @@ router.delete("/remove/:product_id", cartController.deleteCartItem);
 router.post("/order", cartController.createOrder);
 
 // GET lịch sử đơn hàng
-router.get("/history", cartController.getOrderHistory);
+router.get("/history/:user_id", cartController.getOrderHistory);
 
 module.exports = router;
