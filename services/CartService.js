@@ -19,6 +19,13 @@ exports.getListCarts = async (userId) => {
         include: [{ model: products, as: "product" }],
     });
 };
+
+exports.getListAllCarts = async () => {
+    return await carts.findAll({
+        include: [{ model: products, as: "product" }],
+    });
+};
+
 exports.addProductToCart = async (userId, productId, quantity) => {
     const [cartItem, created] = await carts.findOrCreate({
         where: { user_id: userId, product_id: productId },
@@ -104,7 +111,7 @@ exports.getHistoryOrder = async (userId) => {
                 include: [{ model: products, as: "product" }],
             },
             { model: payments, as: "payments" },
-            { model: shipping, as: "shipping" },
+            { model: shipping, as: "shippings" },
         ],
     });
 };

@@ -73,7 +73,7 @@ exports.createOrder = async (req, res) => {
 
 exports.getOrderHistory = async (req, res) => {
     try {
-        const user_id = req.user.id;
+        const user_id = req.params.user_id;
         const orders = await cartService.getHistoryOrder(user_id);
         res.json(orders);
     } catch (err) {

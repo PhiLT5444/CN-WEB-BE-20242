@@ -6,8 +6,31 @@ const { orders, orderdetails } = models;
 
 exports.getListOrders = async (req, res) => {
     try {
+        const user_id = req.params.user_id;
         const order_list = await orders.findAll({
-            where: { user_id: 3 },
+            where: { user_id: user_id },
+            include: [
+                {
+                    model: orderdetails,
+                    as: "orderdetails",
+                },
+            ],
+            order: [["created_at", "DESC"]],
+        });
+
+        res.status(200).json(order_list);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: "Đã có lỗi xảy ra khi lấy danh sách đơn hàng.",
+        });
+    }
+};
+
+
+exports.getAllListOrders = async (req, res) => {
+    try {
+        const order_list = await orders.findAll({
             include: [
                 {
                     model: orderdetails,

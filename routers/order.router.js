@@ -3,7 +3,8 @@ const router = express.Router();
 const orderController = require('../controllers/manage_order/order.controller');
 
 // Lấy danh sách tất cả đơn hàng
-router.get('/', orderController.getListOrders);
+router.get('/getAll', orderController.getAllListOrders)
+router.get('/:user_id', orderController.getListOrders);
 
 // Lấy chi tiết đơn hàng theo ID
 router.get('/:order_id', orderController.getOrderById);
