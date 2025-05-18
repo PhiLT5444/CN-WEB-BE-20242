@@ -384,7 +384,7 @@ let changeYourPassword = (userId, oldPW, newPW, confirmPW) =>{
                     if(newPW !== confirmPW){
                        resolve({
                             errCode : 3,
-                            errMessage: 'Mật khẩu không khớp!'
+                            errMessage: 'Mật khẩu xác nhận không khớp!'
                        })
                     }
                     else{
@@ -505,6 +505,23 @@ let getInfo = (userId) =>{
         }
     })
 }
+
+let getShipperList = () => {
+    return new Promise(async(resolve, rejects) => {
+        try{
+            let shipper = await models.users.findAll({
+                raw: true,
+                where : {role : 'shipper'},
+                attributes: ['username', 'phone_number', 'address'],
+            });
+            resolve(shipper);
+        }
+        catch(e){
+            rejects(e);
+        }
+    })
+}
+
 module.exports ={
     handleUserLogin : handleUserLogin,
     createNewUser : createNewUser,
@@ -518,4 +535,5 @@ module.exports ={
     forgotPassword: forgotPassword,
     resetPassword: resetPassword,
     getInfo: getInfo,
+    getShipperList: getShipperList,
 }
