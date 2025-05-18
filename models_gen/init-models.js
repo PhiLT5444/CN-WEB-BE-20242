@@ -2,6 +2,7 @@ var DataTypes = require("sequelize").DataTypes;
 var _branches = require("./branches");
 var _carts = require("./carts");
 var _categories = require("./categories");
+var _invoices = require("./invoices"); // Thêm import model invoices
 var _orderdetails = require("./orderdetails");
 var _orders = require("./orders");
 var _payments = require("./payments");
@@ -13,6 +14,7 @@ function initModels(sequelize) {
   var branches = _branches(sequelize, DataTypes);
   var carts = _carts(sequelize, DataTypes);
   var categories = _categories(sequelize, DataTypes);
+  var invoices = _invoices(sequelize, DataTypes); // Khởi tạo model invoices
   var orderdetails = _orderdetails(sequelize, DataTypes);
   var orders = _orders(sequelize, DataTypes);
   var payments = _payments(sequelize, DataTypes);
@@ -42,11 +44,18 @@ function initModels(sequelize) {
   users.hasMany(orders, { as: "orders", foreignKey: "user_id"});
   payments.belongsTo(users, { as: "user", foreignKey: "user_id"});
   users.hasMany(payments, { as: "payments", foreignKey: "user_id"});
+  
+  // Thiết lập quan hệ cho invoices
+  invoices.belongsTo(orders, { as: "order", foreignKey: "order_id"});
+  orders.hasMany(invoices, { as: "invoices", foreignKey: "order_id"});
+  invoices.belongsTo(users, { as: "user", foreignKey: "user_id"});
+  users.hasMany(invoices, { as: "invoices", foreignKey: "user_id"});
 
   return {
     branches,
     carts,
     categories,
+    invoices, // Thêm invoices vào đối tượng trả về
     orderdetails,
     orders,
     payments,

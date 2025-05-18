@@ -20,7 +20,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false
     },
     status: {
-      type: DataTypes.ENUM('pending','processing','completed','canceled'),
+      type: DataTypes.ENUM('pending','processing','completed','canceled','paid'),
       allowNull: true,
       defaultValue: "pending"
     },
@@ -29,7 +29,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false
     },
     payment_status: {
-      type: DataTypes.ENUM('pending','paid','failed'),
+      type: DataTypes.ENUM('pending','paid','failed','cancelled','processing'),
       allowNull: true,
       defaultValue: "pending"
     },

@@ -7,6 +7,7 @@ const initModels = require('../models_gen/init-models');
 const models = initModels(sequelize);
 const {users, orders, payments} = models;
 const {Op} = require('sequelize');
+const products = require('../models_gen/products');
 // Vì invoices.js chưa được chuyển sang models_gen nên cần xác định
 let invoices;
 try {
@@ -20,6 +21,54 @@ try {
  */
 class PaymentService {
  
+
+  /**
+   * Tạo giao dịch thanh toán mới
+   * @param {Object} paymentData - Dữ liệu giao dịch
+   * @param {string} paymentData.order_id - ID đơn hàng
+   * @param {string} paymentData.user_id - ID người dùng
+   * @param {number} paymentData.amount - Số tiền thanh toán
+   * @param {string} paymentData.payment_method - Phương thức thanh toán
+   * @param {string} paymentData.transaction_id - ID giao dịch
+   * @param {string} paymentData.payment_status - Trạng thái giao dịch
+   * @returns {Object} Giao dịch mới được tạo
+   */
+  async createPayment({ order_id, user_id, amount, payment_method, payment_status }) {
+    try {
+
+      const transaction_id = `TRANS_${Date.now()}`;
+       // Bước 1: Update đơn hàng trước
+      // Cập nhật bảng orders với điều kiện
+    const [affectedRows] = await orders.update(
+      { payment_status: 'pending', status: 'pending' },
+      {
+        where: {
+          total_amount: amount,
+          user_id: user_id
+        }
+      }
+    );
+
+    if (affectedRows === 0) {
+      throw new Error(`No matching order found with total_amount = ${amount} and user_id = ${user_id}`);
+    }
+
+    // Bước 2: Tạo payment tương ứng
+      const payment = await payments.create({
+      order_id,
+      user_id,
+      amount,
+      payment_method,
+      transaction_id,
+      payment_status: 'pending',
+    });
+
+    return payment ;
+    } catch (error) {
+      throw new Error(`Failed to create payment: ${error.message}`);
+    }
+  }
+
   /**
    * Giả lập thanh toán qua bên thứ ba
    * @param {string} order_id - ID của đơn hàng
@@ -27,56 +76,60 @@ class PaymentService {
    * @param {string} payment_method - Phương thức thanh toán
    * @returns {Object} Kết quả thanh toán giả lập (success/fail)
    */
-  async mockThirdPartyPayment(order_id, amount, payment_method) {
+  async mockThirdPartyPayment(order_id, amount, payment_method, transaction_id) {
     const mockResponse = {
-      success: Math.random() > 0.2,
-      transaction_id: `TRANS_${Date.now()}`,
-      message: Math.random() > 0.2 ? 'Payment successful' : 'Payment failed due to insufficient funds',
+      success: Math.random() > 0.1,
+      transaction_id, //Lấy trans_id từ createPayment
+      message: Math.random() > 0.1 ? 'Payment successful' : 'Payment failed due to insufficient funds',
     };
     return mockResponse;
   }
 
   /**
-   * Xử lý thanh toán cho đơn hàng
-   * @param {string} order_id - ID của đơn hàng
-   * @param {string} user_id - ID của người dùng
-   * @param {string} payment_method - Phương thức thanh toán
-   * @returns {Object} Kết quả xử lý thanh toán
-   */
-  async processPayment(order_id, user_id, payment_method) {
-    try {
-      const order = await orders.findByPk(order_id);
-      if (!order) {
-        throw new Error('Order not found');
-      }
+ * Xử lý thanh toán cho đơn hàng
+ * @param {string} order_id - ID của đơn hàng
+ * @param {string} user_id - ID của người dùng
+ * @param {string} payment_method - Phương thức thanh toán
+ * @returns {Object} Kết quả xử lý thanh toán
+ */
+async processPayment(order_id, user_id, payment_method) {
+  try {
+    const order = await orders.findByPk(order_id);
+    if (!order || order.is_deleted) {
+      throw new Error('Order not found or has been deleted');
+    }
+    if ( order.payment_status !== 'pending') {
+      throw new Error('Order is not in a payable state');
+    }
 
-      if (order.status !== 'pending') {
-        throw new Error('Order is not in a payable state');
-      }
+      // Tạo bản ghi payment trước với trạng thái pending
+      const paymentRecord = await this.createPayment({
+        order_id,
+        user_id,
+        amount: order.total_amount,
+        payment_method,
+        payment_status: 'pending'
+      });
 
-      const paymentResult = await this.mockThirdPartyPayment(order_id, order.total_amount, payment_method);
+    const paymentResult = await this.mockThirdPartyPayment(order_id, order.total_amount, payment_method,paymentRecord.transaction_id);
 
+    const result = await sequelize.transaction(async (t) => {
       if (paymentResult.success) {
-        // Cập nhật trạng thái đơn hàng
-        await orders.update({
-          status: 'paid',
-          payment_status: 'paid'
-        }, {
-          where: { id: order_id }
-        });
-
-        // Tạo giao dịch thanh toán
-        await this.createPayment({
-          order_id,
-          user_id,
-          amount: order.total_amount,
-          payment_method,
-          transaction_id: paymentResult.transaction_id,
-          payment_status: 'successful',
-        });
-
-        const invoice = await this.createInvoice(order_id, user_id);
-        
+        await orders.update(
+          { status: 'processing', payment_status: 'paid' },
+          { where: { id: order_id }, transaction: t }
+        );
+        await payments.update(
+            {
+              payment_status: 'paid',
+              updated_at: new Date()
+            },
+            { 
+              where: { transaction_id: paymentRecord.transaction_id },
+              transaction: t 
+            }
+          );
+        const invoice = await this.createInvoice(order_id, user_id, t);
         return {
           success: true,
           message: 'Payment successful',
@@ -84,19 +137,33 @@ class PaymentService {
           invoice_id: invoice.id,
         };
       } else {
-        // Cập nhật trạng thái đơn hàng khi thanh toán thất bại
-        await orders.update({
-          payment_status: 'failed'
-        }, {
-          where: { id: order_id }
-        });
-        
-        throw new Error(paymentResult.message);
+        await orders.update(
+          { payment_status: 'failed' },
+          { where: { id: order_id }, transaction: t }
+        );
+        await payments.update(
+           {
+              payment_status: 'failed',
+              updated_at: new Date()
+            },
+            { 
+              where: { transaction_id: paymentRecord.transaction_id },
+              transaction: t 
+            }
+          );
+         // Xử lý lỗi chi tiết hơn
+          const errorMessage = paymentResult.message || 'Unknown payment error';
+          console.error(`Payment failed: ${errorMessage} for order ${order_id}`);
+          throw new Error(errorMessage);
       }
-    } catch (error) {
-      throw new Error(`Payment processing failed: ${error.message}`);
-    }
+    });
+
+    return result;
+  } catch (error) {
+    console.error(`Payment processing error: ${error.message}`);
+    throw new Error(`Payment processing failed: ${error.message}`);
   }
+}
 
   /**
    * Hủy thanh toán cho đơn hàng
@@ -114,6 +181,13 @@ class PaymentService {
         throw new Error('Cannot cancel a completed payment');
       }
 
+      // Cập nhật trạng thái đơn hàng khi hủy thanh toán
+      await orders.update({
+        status: 'canceled',
+        payment_status: 'failed'
+      }, {
+        where: { id: order_id }
+      });
       // Cập nhật trạng thái đơn hàng khi hủy thanh toán
       await orders.update({
         status: 'canceled',
@@ -152,49 +226,73 @@ class PaymentService {
       if (!order) {
         throw new Error('Order not found');
       }
-
-      if (payment.payment_status === 'successful') {
-        return { success: true, message: 'Payment confirmed', order };
-      } else {
-        throw new Error('Payment confirmation failed: Invalid transaction');
-      }
+      // fix lần 1
+      if (payment.payment_status === 'paid') {
+            await payment.update({ payment_status: 'successful' });
+            await orders.update(
+                { payment_status: 'paid', status: 'paid' },
+                { where: { id: order_id } }
+            );
+            return { success: true, message: 'Payment confirmed', order };
+        } else {
+            throw new Error('Payment cannot be confirmed: Invalid status');
+        }
     } catch (error) {
-      throw new Error(`Payment confirmation failed: ${error.message}`);
+        throw new Error(`Payment confirmation failed: ${error.message}`);
     }
-  }
+}
 
-  /**
-   * Tạo hóa đơn cho đơn hàng
-   * @param {string} order_id - ID của đơn hàng
-   * @param {string} user_id - ID của người dùng
-   * @returns {Object} Hóa đơn mới được tạo
-   */
-  async createInvoice(order_id, user_id) {
-    try {
-      const order = await orders.findByPk(order_id, {
-        include: [{
-          model: db.orderdetails,
-          as: 'orderdetails'
-        }]
-      });
-      
-      if (!order) {
-        throw new Error('Order not found');
-      }
+ /**
+ * Tạo hóa đơn cho đơn hàng
+ * @param {string} order_id - ID của đơn hàng
+ * @param {string} user_id - ID của người dùng
+ * @param {Object} transaction - Transaction object từ Sequelize (optional)
+ * @returns {Object} Hóa đơn mới được tạo
+ */
+async createInvoice(order_id, user_id, transaction = null) {
+  try {
+    const order = await orders.findByPk(order_id, {
+      attributes: ['id', 'total_amount'],
+      include: [{
+        model: models.orderdetails,
+        as: 'orderdetails',
+        attributes: ['id', 'product_id', 'quantity', 'price', 'total_price'],
+        where: { is_deleted: 0 },
+        required: false
+      }],
+      transaction
+    });
 
-      const invoice = await invoices.create({
+    if (!order || order.is_deleted) {
+      throw new Error('Order not found or has been deleted');
+    }
+
+    const orderDetailsData = order.orderdetails.map(detail => ({
+      id: detail.id,
+      product_id: detail.product_id,
+      quantity: detail.quantity,
+      price: detail.price,
+      total_price: detail.total_price || (detail.price * detail.quantity)
+    }));
+
+    const invoice = await models.invoices.create(
+      {
         order_id: order.id,
-        user_id: user_id,
-        items: JSON.stringify(order.orderdetails),
+        user_id,
+        items: products.name,
         total_amount: order.total_amount,
-      });
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      { transaction }
+    );
 
-      return invoice;
-    } catch (error) {
-      throw new Error(`Invoice creation failed: ${error.message}`);
-    }
+    return invoice;
+  } catch (error) {
+    console.error(`Invoice creation error: ${error.message}`);
+    throw new Error(`Invoice creation failed: ${error.message}`);
   }
-
+}
   /**
    * Lấy thông tin chi tiết của hóa đơn
    * @param {string} invoice_id - ID của hóa đơn
@@ -202,15 +300,16 @@ class PaymentService {
    */
   async getInvoice(invoice_id) {
     try {
-      const invoice = await invoices.findByPk(invoice_id);
-      
+      const invoice = await invoices.findByPk(invoice_id);      
       if (!invoice) {
         throw new Error('Invoice not found');
       }
 
       // Lấy thêm thông tin liên quan
       const order = await orders.findByPk(invoice.order_id);
-      const user = await users.findByPk(invoice.user_id);
+      const user = await users.findByPk(invoice.user_id,{
+          attributes: { exclude: ['resetToken','tokenExpire','password'] }
+    });;
 
       // Kết hợp dữ liệu
       return {
@@ -224,14 +323,15 @@ class PaymentService {
   }
 
   /**
-   * Lấy danh sách tất cả các giao dịch thanh toán
+   * Lấy danh sách tất cả các giao dịch thanh toán của users
    * @returns {Array} Danh sách các giao dịch
    */
-  async getAllPayments() {
+  async getAllPayments(user_id) {
     try {
       const allPayments = await payments.findAll({
         where: {
-          is_deleted: false
+          is_deleted: false,
+          user_id
         },
         include: [
           { 
@@ -240,7 +340,8 @@ class PaymentService {
           },
           { 
             model: users,
-            as: 'user'
+            as: 'user',
+            attributes: { exclude: ['resetToken', 'password','tokenExpire'] }  // bỏ các trường nhạy cảm
           }
         ]
       });
@@ -250,34 +351,7 @@ class PaymentService {
     }
   }
 
-  /**
-   * Tạo giao dịch thanh toán mới
-   * @param {Object} paymentData - Dữ liệu giao dịch
-   * @param {string} paymentData.order_id - ID đơn hàng
-   * @param {string} paymentData.user_id - ID người dùng
-   * @param {number} paymentData.amount - Số tiền thanh toán
-   * @param {string} paymentData.payment_method - Phương thức thanh toán
-   * @param {string} paymentData.transaction_id - ID giao dịch
-   * @param {string} paymentData.payment_status - Trạng thái giao dịch
-   * @returns {Object} Giao dịch mới được tạo
-   */
-  async createPayment({ order_id, user_id, amount, payment_method, transaction_id, payment_status }) {
-    try {
-      const payment = await payments.create({
-        order_id,
-        user_id,
-        amount,
-        payment_method,
-        transaction_id: transaction_id || `TRANS_${Date.now()}`,
-        payment_status: payment_status || 'pending',
-      });
-      
-      return payment;
-    } catch (error) {
-      throw new Error(`Failed to create payment: ${error.message}`);
-    }
-  }
-
+  
   /**
    * Kiểm tra trạng thái thanh toán của đơn hàng
    * @param {string} order_id - ID của đơn hàng
@@ -348,7 +422,7 @@ class PaymentService {
         // Cập nhật trạng thái đơn hàng
         await orders.update({
           status: 'canceled',
-          payment_status: 'refunded'
+          payment_status: 'failed' // fix, nên xem lại
         }, {
           where: { id: order_id }
         });
@@ -360,7 +434,7 @@ class PaymentService {
           amount: -payment.amount, // Số tiền âm để thể hiện hoàn tiền
           payment_method: payment.payment_method,
           transaction_id: refundResult.refund_id,
-          payment_status: 'successful',
+          payment_status: 'refunded',
           refund_reason: reason
         });
 
