@@ -135,6 +135,21 @@ class PaymentController {
     }
   }
 
+  // Lấy hóa đơn theo order_id
+  async getInvoiceByOrderId(req, res) {
+  try {
+    const { order_id } = req.query;
+    if (!order_id) {
+      return res.status(400).json({ success: false, message: 'Order ID is required' });
+    }
+
+    const invoice = await PaymentService.getInvoiceByOrderId(order_id);
+    res.status(200).json({ success: true, invoice });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
   /**
    * Lấy danh sách tất cả các giao dịch thanh toán của users
    * 
@@ -163,6 +178,34 @@ class PaymentController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
+
+ /**
+ * Lấy bản ghi thanh toán mới nhất theo điều kiện
+ * @route GET /api/payments/filter
+ * @param {Object} req - Request object
+ * @param {Object} res - Response object
+ * @returns {Object} Bản ghi thanh toán mới nhất hoặc thông báo không tìm thấy
+ */
+async getFilteredPayments(req, res) {
+  try {
+    const { user_id, order_id, payment_status } = req.query;
+
+    const filters = {};
+    if (user_id) filters.user_id = parseInt(user_id);
+    if (order_id) filters.order_id = parseInt(order_id);
+    if (payment_status) filters.payment_status = payment_status;
+
+    const payment = await PaymentService.getFilteredPayments(filters);
+
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'No payment found matching criteria' });
+    }
+
+    res.status(200).json({ success: true, payment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
 
   /**
    * Tạo một giao dịch thanh toán mới

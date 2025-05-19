@@ -22,9 +22,19 @@ router.get('/confirm', paymentController.confirmPayment);
 // GET /api/invoices/:invoice_id
 router.get('/invoices/:invoice_id', paymentController.getInvoice);
 
+// 4.1 Lấy hóa đơn theo order_id
+// GET /api/invoices?order_id=xxx
+router.get('/invoices', paymentController.getInvoiceByOrderId);
+
+
 // 5.Route lấy danh sách tất cả các giao dịch thanh toán của user từ trước tới nay
 // GET /api/payments?user_id=xxx
 router.get('/', paymentController.getAllPayments);
+
+// 5.1. Route lấy danh sách các giao dịch thanh toán theo bộ lọc tùy chọn
+// GET /api/payments/filter?user_id=...&order_id=...&payment_status=...
+router.get('/filter', paymentController.getFilteredPayments);
+
 
 //fix lần 1
 // 6.Route tạo một giao dịch thanh toán mới
