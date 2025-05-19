@@ -512,7 +512,7 @@ let getShipperList = () => {
             let shipper = await models.users.findAll({
                 raw: true,
                 where : {role : 'shipper'},
-                attributes: ['username', 'phone_number', 'address'],
+                attributes: ['id', 'username', 'phone_number', 'address'],
             });
             resolve(shipper);
         }

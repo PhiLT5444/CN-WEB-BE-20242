@@ -11,5 +11,19 @@
                 "rejectUnauthorized": false
             }
         }
+    },
+
+    "development": {
+        "username": "root",
+        "password": "NLbQxYwzIVqSVVmpEZZppZcNQchqlTiL",
+        "database": "railway",
+        "host": "switchyard.proxy.rlwy.net",
+        "port": 49273,
+        "dialect": "mysql",
+        "dialectOptions": {
+            "ssl": {
+                "rejectUnauthorized": false
+            }
+        }
     }
 }

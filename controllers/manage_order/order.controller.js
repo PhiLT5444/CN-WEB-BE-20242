@@ -1,8 +1,8 @@
-
-const sequelize = require('../../config/database');
-const initModels = require('../../models_gen/init-models');
+const { where } = require("sequelize");
+const sequelize = require("../../config/database");
+const initModels = require("../../models_gen/init-models");
 const models = initModels(sequelize);
-const { orders, orderdetails } = models;
+const { orders, orderdetails, users } = models;
 
 exports.getListOrders = async (req, res) => {
     try {
@@ -27,7 +27,6 @@ exports.getListOrders = async (req, res) => {
     }
 };
 
-
 exports.getAllListOrders = async (req, res) => {
     try {
         const order_list = await orders.findAll({
@@ -35,6 +34,14 @@ exports.getAllListOrders = async (req, res) => {
                 {
                     model: orderdetails,
                     as: "orderdetails",
+                },
+                {
+                    model: users,
+                    as: "user", // Người đặt hàng
+                },
+                {
+                    model: users,
+                    as: "shipper", // Người giao hàng
                 },
             ],
             order: [["created_at", "DESC"]],
@@ -92,7 +99,9 @@ exports.cancelOrder = async (req, res) => {
 
 exports.getPendingDeliveryOrders = async (req, res) => {
     try {
-        const orders_process = await orders.findAll({ where: { status: "processing" } });
+        const orders_process = await orders.findAll({
+            where: { status: "processing" },
+        });
         res.json(orders_process);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -104,12 +113,13 @@ exports.assignShipper = async (req, res) => {
     const { shipper_id } = req.body;
     try {
         const order = await orders.findByPk(orderId);
-        if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+        if (!order)
+            return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
         order.shipper_id = shipper_id;
         order.status = "processing"; // Giao hàng
         await order.save();
-
+        console.log(order.shipper_id);
         res.json({ message: "Shipper assigned", order });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -131,9 +141,12 @@ exports.getOrdersByShipper = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
     const { orderId } = req.params;
     const { status } = req.body;
+    console.log(orderId);
+    console.log(status);
     try {
         const order = await orders.findByPk(orderId);
-        if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+        if (!order)
+            return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
         order.status = status;
         await order.save();
@@ -148,7 +161,8 @@ exports.markOrderAsFailed = async (req, res) => {
     const { orderId } = req.params;
     try {
         const order = await orders.findByPk(orderId);
-        if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+        if (!order)
+            return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
         order.status = "failed";
         await order.save();
@@ -181,7 +195,7 @@ exports.createOrder = async (req, res) => {
         });
 
         // Tạo các chi tiết đơn hàng
-        const orderDetailsData = cartItems.map(item => ({
+        const orderDetailsData = cartItems.map((item) => ({
             order_id: newOrder.id,
             product_id: item.product_id,
             quantity: item.quantity,
@@ -191,10 +205,12 @@ exports.createOrder = async (req, res) => {
 
         await orderdetails.bulkCreate(orderDetailsData);
 
-        res.status(201).json({ message: "Tạo đơn hàng thành công", order_id: newOrder.id });
+        res.status(201).json({
+            message: "Tạo đơn hàng thành công",
+            order_id: newOrder.id,
+        });
     } catch (error) {
         console.error("Lỗi tạo đơn hàng:", error);
         res.status(500).json({ message: "Đã xảy ra lỗi khi tạo đơn hàng" });
     }
 };
-

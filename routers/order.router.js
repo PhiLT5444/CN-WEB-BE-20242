@@ -13,7 +13,7 @@ router.get('/:order_id', orderController.getOrderById);
 router.get('/status/pending-delivery', orderController.getPendingDeliveryOrders);
 
 // Gán shipper cho đơn hàng
-router.put('/:order_id/assign-shipper', orderController.assignShipper);
+router.put('/:orderId/assign-shipper', orderController.assignShipper);
 
 //Tạo đơn hàng
 router.post('/create', orderController.createOrder)
@@ -22,7 +22,7 @@ router.post('/create', orderController.createOrder)
 router.put('/:order_id/cancel', orderController.cancelOrder);
 
 // Cập nhật trạng thái đơn hàng
-router.put('/:order_id/status', orderController.updateOrderStatus);
+router.put('/:orderId/status', orderController.updateOrderStatus);
 
 // Đánh dấu đơn hàng là thất bại
 router.put('/:order_id/fail', orderController.markOrderAsFailed);
