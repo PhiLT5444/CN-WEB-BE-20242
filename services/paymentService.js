@@ -43,7 +43,7 @@ class PaymentService {
       { payment_status: 'pending', status: 'pending' },
       {
         where: {
-          total_amount: amount,
+          id: order_id,
           user_id: user_id
         }
       }
@@ -230,7 +230,7 @@ async processPayment(order_id, user_id, payment_method) {
       if (payment.payment_status === 'paid') {
             await payment.update({ payment_status: 'successful' });
             await orders.update(
-                { payment_status: 'paid', status: 'paid' },
+                { payment_status: 'paid', status: 'processing' },
                 { where: { id: order_id } }
             );
             return { success: true, message: 'Payment confirmed', order };
@@ -322,6 +322,29 @@ async createInvoice(order_id, user_id, transaction = null) {
     }
   }
 
+  // Lấy hóa đơn theo order_id
+  async getInvoiceByOrderId(order_id) {
+  try {
+    const invoice = await invoices.findOne({ where: { order_id, is_deleted: 0 } });
+    if (!invoice) {
+      throw new Error('Invoice not found');
+    }
+
+    const order = await orders.findByPk(invoice.order_id);
+    const user = await users.findByPk(invoice.user_id, {
+      attributes: { exclude: ['resetToken','tokenExpire','password'] }
+    });
+
+    return {
+      ...invoice.toJSON(),
+      order,
+      user
+    };
+  } catch (error) {
+    throw new Error(`Failed to retrieve invoice by order_id: ${error.message}`);
+  }
+}
+
   /**
    * Lấy danh sách tất cả các giao dịch thanh toán của users
    * @returns {Array} Danh sách các giao dịch
@@ -351,6 +374,40 @@ async createInvoice(order_id, user_id, transaction = null) {
     }
   }
 
+  /**
+ * Lấy danh sách giao dịch thanh toán với các điều kiện tùy chọn
+ * @param {Object} filters - Bộ lọc gồm user_id, order_id, payment_status
+ * @returns {Array} Danh sách giao dịch phù hợp
+ */
+// Service: Lấy bản ghi thanh toán mới nhất theo điều kiện
+async getFilteredPayments(filters) {
+  const { user_id, order_id, payment_status } = filters;
+
+  const whereClause = {
+    is_deleted: false,
+    ...(user_id && { user_id }),
+    ...(order_id && { order_id }),
+    ...(payment_status && { payment_status }),
+  };
+
+  const result = await payments.findOne({
+    where: whereClause,
+    order: [['created_at', 'DESC']],
+    include: [
+      {
+        model: orders,
+        as: 'order',
+      },
+      {
+        model: users,
+        as: 'user',
+        attributes: { exclude: ['resetToken', 'password', 'tokenExpire'] },
+      },
+    ],
+  });
+
+  return result;
+}
   
   /**
    * Kiểm tra trạng thái thanh toán của đơn hàng
