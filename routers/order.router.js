@@ -5,6 +5,7 @@ const orderController = require('../controllers/manage_order/order.controller');
 // Lấy danh sách tất cả đơn hàng
 router.get('/getAll', orderController.getAllListOrders)
 router.get('/:user_id', orderController.getListOrders);
+router.get('/shipper/:shipper_id', orderController.getListOrderShipper);
 
 // Lấy chi tiết đơn hàng theo ID
 router.get('/:order_id', orderController.getOrderById);

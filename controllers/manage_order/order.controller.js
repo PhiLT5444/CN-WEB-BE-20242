@@ -27,6 +27,29 @@ exports.getListOrders = async (req, res) => {
     }
 };
 
+exports.getListOrderShipper = async (req, res) => {
+    try {
+        const shipper_id = req.params.shipper_id;
+        const order_list = await orders.findAll({
+            where: { shipper_id: shipper_id },
+            include: [
+                {
+                    model: orderdetails,
+                    as: "orderdetails",
+                },
+            ],
+            order: [["created_at", "DESC"]],
+        });
+
+        res.status(200).json(order_list);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: "Đã có lỗi xảy ra khi lấy danh sách đơn hàng.",
+        });
+    }
+};
+
 exports.getAllListOrders = async (req, res) => {
     try {
         const order_list = await orders.findAll({
