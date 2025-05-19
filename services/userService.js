@@ -431,7 +431,7 @@ let forgotPassword = (email) =>{
                 user.tokenExpire = Date.now() + 1000 * 60 * 15;
                 await user.save();
 
-                const resetLink = `http://localhost:3000/reset-password?token=${token}`
+                const resetLink = `20225218.id.vn/reset-password?token=${token}`
                 await sendMail(email, "Reset mật khẩu", `Link đặt lại mật khẩu: ${resetLink}`);
 
                 resolve({
